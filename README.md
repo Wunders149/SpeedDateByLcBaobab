@@ -196,3 +196,18 @@ The algorithm supports:
 ## License
 
 MIT
+
+## Notification Delivery Adapter
+
+The backend includes a dependency-free notification adapter (\pps/api/src/services/notifications.service.ts\) with pluggable e-mail (console/SMTP) and SMS (console/HTTP) transports. Configure via \SMTP_HOST\, \SMTP_PORT\, \SMTP_USER\, \SMTP_PASS\, \SMTP_FROM\, \SMS_PROVIDER_URL\, \SMS_API_KEY\ env vars. With no provider configured, messages are logged to the console (development mode).
+
+## E2E Testing
+
+Playwright specs live in \	ests/e2e/\. Install browsers once, then run:
+
+\\\ash
+npm install --save-dev @playwright/test
+npx playwright install
+npm run test:e2e
+\\\
+

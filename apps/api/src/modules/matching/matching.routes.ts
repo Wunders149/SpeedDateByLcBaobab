@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { Event } from '../../models/Event.js';
+import { User } from '../../models/User.js';
 import { Registration } from '../../models/Registration.js';
 import { QuestionnaireResponse } from '../../models/QuestionnaireResponse.js';
 import { QuestionnaireVersion } from '../../models/QuestionnaireVersion.js';
@@ -10,6 +11,7 @@ import { authenticate, requireAdmin } from '../../middleware/auth.js';
 import { validate } from '../../middleware/validate.js';
 import { generateMatchesSchema } from '@speed-date/shared';
 import { logAudit } from '../../utils/audit.js';
+import { createNotificationServiceFromEnv } from '../../services/notifications.service.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { globalOptimalMatching, compatibilityRanking, ALGORITHM_VERSION } from '@speed-date/shared';
 import { Notification } from '../../models/Notification.js';
@@ -288,6 +290,33 @@ router.post(
       },
     ]);
     await Notification.insertMany(notifications);
+
+    // Dispatch email notifications via adapter (best-effort, channels configured via env)
+    const uniqueRecipientIds = [...new Set(matches.flatMap((m) => [m.participantAId.toString(), m.participantBId.toString()]))];
+    const recipients = await User.find({ _id: { $in: uniqueRecipientIds } }).select('email').lean();
+    const emailByUser = new Map(recipients.map((u) => [u._id.toString(), u.email as string]));
+    const dispatchService = createNotificationServiceFromEnv();
+    const title = 'Match Results Available';
+    const message = 'Your match results are now available. Check your dashboard!';
+    await Promise.all(
+      uniqueRecipientIds.map(async (uid) => {
+        const email = emailByUser.get(uid);
+        if (!email) return;
+        try {
+          await dispatchService.send({
+            recipientId: uid,
+            eventId: eventId as string,
+            type: 'match_results_published',
+            title,
+            message,
+            email,
+            channels: ['email'],
+          });
+        } catch (err) {
+          console.warn('[notification] email dispatch failed:', (err as Error).message);
+        }
+      }),
+    );
 
     await logAudit(req, 'matches.published', 'match_run', matchRun._id.toString());
 

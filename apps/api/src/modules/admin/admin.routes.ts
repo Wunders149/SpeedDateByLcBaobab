@@ -8,6 +8,7 @@ import { authenticate, requireAdmin } from '../../middleware/auth.js';
 import { validate } from '../../middleware/validate.js';
 import { createAdminSchema, updateAdminSchema, createNotificationSchema } from '@speed-date/shared';
 import { logAudit } from '../../utils/audit.js';
+import { createNotificationServiceFromEnv } from '../../services/notifications.service.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { hashPassword } from '../../utils/auth.js';
 
@@ -217,9 +218,36 @@ router.post(
   requireAdmin,
   validate(createNotificationSchema),
   async (req: Request, res: Response) => {
-    const notification = await Notification.create(req.body);
-    await logAudit(req, 'notification.sent', 'notification', notification._id.toString());
-    res.status(201).json({ success: true, data: { notification } });
+    const { recipientId, eventId, type, title, message, channels } = req.body;
+
+    const recipient = await User.findById(recipientId).select('email').lean();
+
+    const service = createNotificationServiceFromEnv(async (payload) => {
+      return Notification.create({
+        recipientId: payload.recipientId,
+        eventId: payload.eventId,
+        type: payload.type,
+        title: payload.title,
+        message: payload.message,
+      });
+    });
+
+    const results = await service.send({
+      recipientId,
+      eventId,
+      email: recipient?.email as string | undefined,
+      type,
+      title,
+      message,
+      channels: channels ?? ['in_app'],
+    });
+
+    await logAudit(req, 'notification.sent', 'notification', recipientId, undefined, {
+      type,
+      channels: channels ?? ['in_app'],
+    });
+
+    res.status(201).json({ success: true, data: { results } });
   },
 );
 

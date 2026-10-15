@@ -210,6 +210,7 @@ export const createNotificationSchema = z.object({
   type: z.string().min(1).max(50),
   title: z.string().min(1).max(200),
   message: z.string().min(1).max(1000),
+  channels: z.array(z.enum(['in_app', 'email', 'sms'])).optional(),
 });
 
 // ─── Audit Schemas ───────────────────────────────────────────────────────────

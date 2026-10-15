@@ -11,6 +11,6 @@
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
     "isolatedModules": true,
-    "noEmit": false
+    "noEmit": true
   }
 }
