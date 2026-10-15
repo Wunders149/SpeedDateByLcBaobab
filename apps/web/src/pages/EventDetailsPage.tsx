@@ -2,7 +2,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
-import { Calendar, MapPin, Clock, Users, ArrowLeft, Heart, CheckCircle, AlertCircle } from 'lucide-react';
+import { Calendar, MapPin, Clock, Users, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 
 interface EventDetail {

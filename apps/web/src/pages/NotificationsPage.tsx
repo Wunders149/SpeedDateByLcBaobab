@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
-import { Bell, Check, Trash2, Heart, FileText, Users } from 'lucide-react';
+import { Bell, Check, Trash2, FileText, Heart } from 'lucide-react';
 import { useState } from 'react';
 
 interface Notification {

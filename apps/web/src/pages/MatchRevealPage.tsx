@@ -9,7 +9,7 @@ export function MatchRevealPage() {
   const { user } = useAuth();
   const [revealed, setRevealed] = useState(false);
 
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ['my-results'],
     queryFn: async () => {
       const eventsResponse = await api('/api/v1/events') as unknown as { data: { events: Array<{ id: string }> } };
