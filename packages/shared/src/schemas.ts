@@ -50,7 +50,11 @@ export const updateProfileSchema = z.object({
 
 export const createEventSchema = z.object({
   name: z.string().min(2).max(200),
-  slug: z.string().min(2).max(200).regex(/^[a-z0-9-]+$/),
+  slug: z
+    .string()
+    .min(2)
+    .max(200)
+    .regex(/^[a-z0-9-]+$/),
   description: z.string().max(2000),
   venue: z.string().max(200),
   timezone: z.string().max(50).default('UTC'),
@@ -59,7 +63,13 @@ export const createEventSchema = z.object({
   registrationDeadline: z.string().datetime(),
   capacity: z.number().int().positive().max(1000),
   eligibleGroups: z.array(z.string().max(50)).min(1),
-  eventMode: z.enum(['in_person', 'quiz_based', 'guided_conversation', 'post_event_matching', 'organizer_mediated']),
+  eventMode: z.enum([
+    'in_person',
+    'quiz_based',
+    'guided_conversation',
+    'post_event_matching',
+    'organizer_mediated',
+  ]),
   organizerContact: z.string().max(200),
   instructions: z.string().max(5000).optional(),
 });
@@ -97,31 +107,36 @@ export const createQuestionSchema = z.object({
 
 export const updateQuestionSchema = createQuestionSchema.partial();
 
-export const categoryWeightsSchema = z.record(
-  z.nativeEnum(QuestionCategory),
-  z.number().min(0).max(1),
-).refine(
-  (weights) => {
-    const total = Object.values(weights).reduce((sum, w) => sum + w, 0);
-    return Math.abs(total - 1) < 0.001;
-  },
-  { message: 'Category weights must sum to 1.0' },
-);
+export const categoryWeightsSchema = z
+  .record(z.nativeEnum(QuestionCategory), z.number().min(0).max(1))
+  .refine(
+    (weights) => {
+      const total = Object.values(weights).reduce((sum, w) => sum + w, 0);
+      return Math.abs(total - 1) < 0.001;
+    },
+    { message: 'Category weights must sum to 1.0' },
+  );
 
 // ─── Questionnaire Schemas ───────────────────────────────────────────────────
 
 export const saveDraftSchema = z.object({
-  answers: z.array(z.object({
-    questionId: z.string().min(1),
-    value: z.union([z.number(), z.string(), z.array(z.string())]),
-  })),
+  answers: z.array(
+    z.object({
+      questionId: z.string().min(1),
+      value: z.union([z.number(), z.string(), z.array(z.string())]),
+    }),
+  ),
 });
 
 export const submitQuestionnaireSchema = z.object({
-  answers: z.array(z.object({
-    questionId: z.string().min(1),
-    value: z.union([z.number(), z.string(), z.array(z.string())]),
-  })).min(1),
+  answers: z
+    .array(
+      z.object({
+        questionId: z.string().min(1),
+        value: z.union([z.number(), z.string(), z.array(z.string())]),
+      }),
+    )
+    .min(1),
 });
 
 // ─── Registration Schemas ────────────────────────────────────────────────────
@@ -131,7 +146,16 @@ export const createRegistrationSchema = z.object({
 });
 
 export const updateRegistrationSchema = z.object({
-  status: z.enum(['submitted', 'pending_review', 'approved', 'waitlisted', 'rejected', 'withdrawn', 'checked_in', 'completed']),
+  status: z.enum([
+    'submitted',
+    'pending_review',
+    'approved',
+    'waitlisted',
+    'rejected',
+    'withdrawn',
+    'checked_in',
+    'completed',
+  ]),
   reason: z.string().max(500).optional(),
 });
 

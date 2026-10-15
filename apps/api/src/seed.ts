@@ -1,5 +1,4 @@
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
+import './config/env.js';
 import { connectDatabase, disconnectDatabase } from './config/database.js';
 import { User } from './models/User.js';
 import { Event } from './models/Event.js';
@@ -9,84 +8,388 @@ import { QuestionnaireResponse } from './models/QuestionnaireResponse.js';
 import { QuestionnaireVersion } from './models/QuestionnaireVersion.js';
 import { ParticipantProfile } from './models/ParticipantProfile.js';
 import { hashPassword } from './utils/auth.js';
-import { QuestionCategory, QuestionType, ScoringModel, DEFAULT_CATEGORY_WEIGHTS } from '@speed-date/shared';
-
-dotenv.config();
+import {
+  QuestionCategory,
+  QuestionType,
+  ScoringModel,
+  DEFAULT_CATEGORY_WEIGHTS,
+} from '@speed-date/shared';
 
 const QUESTION_BANK = [
   // ─── Values (10 questions) ──────────────────────────────────────────────────
-  { text: 'Family is the most important thing in my life.', category: QuestionCategory.Values, type: QuestionType.AgreementScale, weight: 1.5 },
-  { text: 'Honesty is more important than being tactful.', category: QuestionCategory.Values, type: QuestionType.AgreementScale, weight: 1 },
-  { text: 'I value personal growth and self-improvement.', category: QuestionCategory.Values, type: QuestionType.AgreementScale, weight: 1 },
-  { text: 'Loyalty is essential in any relationship.', category: QuestionCategory.Values, type: QuestionType.AgreementScale, weight: 1.5 },
-  { text: 'I believe in work-life balance.', category: QuestionCategory.Values, type: QuestionType.AgreementScale, weight: 1 },
-  { text: 'Financial security is a top priority for me.', category: QuestionCategory.Values, type: QuestionType.AgreementScale, weight: 1 },
-  { text: 'I value tradition and cultural heritage.', category: QuestionCategory.Values, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'Giving back to the community is important to me.', category: QuestionCategory.Values, type: QuestionType.AgreementScale, weight: 1 },
-  { text: 'I believe in equality and fairness for all.', category: QuestionCategory.Values, type: QuestionType.AgreementScale, weight: 1 },
-  { text: 'Freedom and independence are crucial to my happiness.', category: QuestionCategory.Values, type: QuestionType.AgreementScale, weight: 1 },
+  {
+    text: 'Family is the most important thing in my life.',
+    category: QuestionCategory.Values,
+    type: QuestionType.AgreementScale,
+    weight: 1.5,
+  },
+  {
+    text: 'Honesty is more important than being tactful.',
+    category: QuestionCategory.Values,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
+  {
+    text: 'I value personal growth and self-improvement.',
+    category: QuestionCategory.Values,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
+  {
+    text: 'Loyalty is essential in any relationship.',
+    category: QuestionCategory.Values,
+    type: QuestionType.AgreementScale,
+    weight: 1.5,
+  },
+  {
+    text: 'I believe in work-life balance.',
+    category: QuestionCategory.Values,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
+  {
+    text: 'Financial security is a top priority for me.',
+    category: QuestionCategory.Values,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
+  {
+    text: 'I value tradition and cultural heritage.',
+    category: QuestionCategory.Values,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'Giving back to the community is important to me.',
+    category: QuestionCategory.Values,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
+  {
+    text: 'I believe in equality and fairness for all.',
+    category: QuestionCategory.Values,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
+  {
+    text: 'Freedom and independence are crucial to my happiness.',
+    category: QuestionCategory.Values,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
 
   // ─── Communication (8 questions) ───────────────────────────────────────────
-  { text: 'I prefer to discuss issues directly rather than avoid them.', category: QuestionCategory.Communication, type: QuestionType.AgreementScale, weight: 1.5 },
-  { text: 'I am a good listener.', category: QuestionCategory.Communication, type: QuestionType.AgreementScale, weight: 1 },
-  { text: 'I express my feelings openly.', category: QuestionCategory.Communication, type: QuestionType.AgreementScale, weight: 1 },
-  { text: 'I prefer texting over phone calls.', category: QuestionCategory.Communication, type: QuestionType.PreferenceScale, weight: 0.5 },
-  { text: 'I enjoy deep, meaningful conversations.', category: QuestionCategory.Communication, type: QuestionType.AgreementScale, weight: 1.5 },
-  { text: 'I am comfortable with silence in conversations.', category: QuestionCategory.Communication, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I prefer to resolve conflicts calmly.', category: QuestionCategory.Communication, type: QuestionType.AgreementScale, weight: 1 },
-  { text: 'I am good at reading non-verbal cues.', category: QuestionCategory.Communication, type: QuestionType.AgreementScale, weight: 1 },
+  {
+    text: 'I prefer to discuss issues directly rather than avoid them.',
+    category: QuestionCategory.Communication,
+    type: QuestionType.AgreementScale,
+    weight: 1.5,
+  },
+  {
+    text: 'I am a good listener.',
+    category: QuestionCategory.Communication,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
+  {
+    text: 'I express my feelings openly.',
+    category: QuestionCategory.Communication,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
+  {
+    text: 'I prefer texting over phone calls.',
+    category: QuestionCategory.Communication,
+    type: QuestionType.PreferenceScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I enjoy deep, meaningful conversations.',
+    category: QuestionCategory.Communication,
+    type: QuestionType.AgreementScale,
+    weight: 1.5,
+  },
+  {
+    text: 'I am comfortable with silence in conversations.',
+    category: QuestionCategory.Communication,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I prefer to resolve conflicts calmly.',
+    category: QuestionCategory.Communication,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
+  {
+    text: 'I am good at reading non-verbal cues.',
+    category: QuestionCategory.Communication,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
 
   // ─── Personality (10 questions) ─────────────────────────────────────────────
-  { text: 'I consider myself an introvert.', category: QuestionCategory.Personality, type: QuestionType.AgreementScale, weight: 1 },
-  { text: 'I am highly organized and plan ahead.', category: QuestionCategory.Personality, type: QuestionType.AgreementScale, weight: 1 },
-  { text: 'I enjoy being the center of attention.', category: QuestionCategory.Personality, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I am very empathetic towards others.', category: QuestionCategory.Personality, type: QuestionType.AgreementScale, weight: 1.5 },
-  { text: 'I prefer routine over spontaneity.', category: QuestionCategory.Personality, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I am very curious and love learning new things.', category: QuestionCategory.Personality, type: QuestionType.AgreementScale, weight: 1 },
-  { text: 'I handle stress well.', category: QuestionCategory.Personality, type: QuestionType.AgreementScale, weight: 1 },
-  { text: 'I am very competitive.', category: QuestionCategory.Personality, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I am a natural leader.', category: QuestionCategory.Personality, type: QuestionType.AgreementScale, weight: 1 },
-  { text: 'I am very patient with others.', category: QuestionCategory.Personality, type: QuestionType.AgreementScale, weight: 1 },
+  {
+    text: 'I consider myself an introvert.',
+    category: QuestionCategory.Personality,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
+  {
+    text: 'I am highly organized and plan ahead.',
+    category: QuestionCategory.Personality,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
+  {
+    text: 'I enjoy being the center of attention.',
+    category: QuestionCategory.Personality,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I am very empathetic towards others.',
+    category: QuestionCategory.Personality,
+    type: QuestionType.AgreementScale,
+    weight: 1.5,
+  },
+  {
+    text: 'I prefer routine over spontaneity.',
+    category: QuestionCategory.Personality,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I am very curious and love learning new things.',
+    category: QuestionCategory.Personality,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
+  {
+    text: 'I handle stress well.',
+    category: QuestionCategory.Personality,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
+  {
+    text: 'I am very competitive.',
+    category: QuestionCategory.Personality,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I am a natural leader.',
+    category: QuestionCategory.Personality,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
+  {
+    text: 'I am very patient with others.',
+    category: QuestionCategory.Personality,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
 
   // ─── Lifestyle (10 questions) ───────────────────────────────────────────────
-  { text: 'I exercise regularly.', category: QuestionCategory.Lifestyle, type: QuestionType.AgreementScale, weight: 1 },
-  { text: 'I enjoy cooking at home.', category: QuestionCategory.Lifestyle, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I prefer staying out late over going to bed early.', category: QuestionCategory.Lifestyle, type: QuestionType.PreferenceScale, weight: 0.5 },
-  { text: 'I enjoy outdoor activities like hiking and camping.', category: QuestionCategory.Lifestyle, type: QuestionType.AgreementScale, weight: 1 },
-  { text: 'I am a foodie and love trying new restaurants.', category: QuestionCategory.Lifestyle, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I enjoy traveling to new places.', category: QuestionCategory.Lifestyle, type: QuestionType.AgreementScale, weight: 1 },
-  { text: 'I prefer a minimalist lifestyle.', category: QuestionCategory.Lifestyle, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I enjoy attending social events and parties.', category: QuestionCategory.Lifestyle, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I have pets and love animals.', category: QuestionCategory.Lifestyle, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I enjoy reading books in my free time.', category: QuestionCategory.Lifestyle, type: QuestionType.AgreementScale, weight: 0.5 },
+  {
+    text: 'I exercise regularly.',
+    category: QuestionCategory.Lifestyle,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
+  {
+    text: 'I enjoy cooking at home.',
+    category: QuestionCategory.Lifestyle,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I prefer staying out late over going to bed early.',
+    category: QuestionCategory.Lifestyle,
+    type: QuestionType.PreferenceScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I enjoy outdoor activities like hiking and camping.',
+    category: QuestionCategory.Lifestyle,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
+  {
+    text: 'I am a foodie and love trying new restaurants.',
+    category: QuestionCategory.Lifestyle,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I enjoy traveling to new places.',
+    category: QuestionCategory.Lifestyle,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
+  {
+    text: 'I prefer a minimalist lifestyle.',
+    category: QuestionCategory.Lifestyle,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I enjoy attending social events and parties.',
+    category: QuestionCategory.Lifestyle,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I have pets and love animals.',
+    category: QuestionCategory.Lifestyle,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I enjoy reading books in my free time.',
+    category: QuestionCategory.Lifestyle,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
 
   // ─── Future Aspirations (7 questions) ───────────────────────────────────────
-  { text: 'I want to have children someday.', category: QuestionCategory.FutureAspirations, type: QuestionType.AgreementScale, weight: 2.5, dealBreaker: true },
-  { text: 'I plan to advance significantly in my career.', category: QuestionCategory.FutureAspirations, type: QuestionType.AgreementScale, weight: 1 },
-  { text: 'I want to live in a different country someday.', category: QuestionCategory.FutureAspirations, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I hope to start my own business.', category: QuestionCategory.FutureAspirations, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I want to buy a home in the next 5 years.', category: QuestionCategory.FutureAspirations, type: QuestionType.AgreementScale, weight: 1 },
-  { text: 'I plan to pursue further education.', category: QuestionCategory.FutureAspirations, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I want to retire early and travel the world.', category: QuestionCategory.FutureAspirations, type: QuestionType.AgreementScale, weight: 0.5 },
+  {
+    text: 'I want to have children someday.',
+    category: QuestionCategory.FutureAspirations,
+    type: QuestionType.AgreementScale,
+    weight: 2.5,
+    dealBreaker: true,
+  },
+  {
+    text: 'I plan to advance significantly in my career.',
+    category: QuestionCategory.FutureAspirations,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
+  {
+    text: 'I want to live in a different country someday.',
+    category: QuestionCategory.FutureAspirations,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I hope to start my own business.',
+    category: QuestionCategory.FutureAspirations,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I want to buy a home in the next 5 years.',
+    category: QuestionCategory.FutureAspirations,
+    type: QuestionType.AgreementScale,
+    weight: 1,
+  },
+  {
+    text: 'I plan to pursue further education.',
+    category: QuestionCategory.FutureAspirations,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I want to retire early and travel the world.',
+    category: QuestionCategory.FutureAspirations,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
 
   // ─── Interests (8 questions) ───────────────────────────────────────────────
-  { text: 'I enjoy listening to live music.', category: QuestionCategory.Interests, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I am a movie buff.', category: QuestionCategory.Interests, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I enjoy playing sports.', category: QuestionCategory.Interests, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I love art and visiting museums.', category: QuestionCategory.Interests, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I enjoy gardening.', category: QuestionCategory.Interests, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I am interested in technology and gadgets.', category: QuestionCategory.Interests, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I enjoy photography.', category: QuestionCategory.Interests, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I love dancing.', category: QuestionCategory.Interests, type: QuestionType.AgreementScale, weight: 0.5 },
+  {
+    text: 'I enjoy listening to live music.',
+    category: QuestionCategory.Interests,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I am a movie buff.',
+    category: QuestionCategory.Interests,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I enjoy playing sports.',
+    category: QuestionCategory.Interests,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I love art and visiting museums.',
+    category: QuestionCategory.Interests,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I enjoy gardening.',
+    category: QuestionCategory.Interests,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I am interested in technology and gadgets.',
+    category: QuestionCategory.Interests,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I enjoy photography.',
+    category: QuestionCategory.Interests,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I love dancing.',
+    category: QuestionCategory.Interests,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
 
   // ─── Fun & Spontaneity (7 questions) ────────────────────────────────────────
-  { text: 'I enjoy trying new and adventurous activities.', category: QuestionCategory.FunSpontaneity, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I like to surprise my partner with spontaneous gestures.', category: QuestionCategory.FunSpontaneity, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I enjoy comedy and making others laugh.', category: QuestionCategory.FunSpontaneity, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I love themed parties and costumes.', category: QuestionCategory.FunSpontaneity, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I enjoy board games and puzzles.', category: QuestionCategory.FunSpontaneity, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I like to keep my schedule flexible.', category: QuestionCategory.FunSpontaneity, type: QuestionType.AgreementScale, weight: 0.5 },
-  { text: 'I enjoy karaoke and performing.', category: QuestionCategory.FunSpontaneity, type: QuestionType.AgreementScale, weight: 0.5 },
+  {
+    text: 'I enjoy trying new and adventurous activities.',
+    category: QuestionCategory.FunSpontaneity,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I like to surprise my partner with spontaneous gestures.',
+    category: QuestionCategory.FunSpontaneity,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I enjoy comedy and making others laugh.',
+    category: QuestionCategory.FunSpontaneity,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I love themed parties and costumes.',
+    category: QuestionCategory.FunSpontaneity,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I enjoy board games and puzzles.',
+    category: QuestionCategory.FunSpontaneity,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I like to keep my schedule flexible.',
+    category: QuestionCategory.FunSpontaneity,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
+  {
+    text: 'I enjoy karaoke and performing.',
+    category: QuestionCategory.FunSpontaneity,
+    type: QuestionType.AgreementScale,
+    weight: 0.5,
+  },
 ];
 
 const SCALE_OPTIONS = [
@@ -99,6 +402,15 @@ const SCALE_OPTIONS = [
 
 async function seed() {
   console.log('[SEED] Starting database seed...');
+
+  // Load environment variables before connecting to database
+  const dotenv = await import('dotenv');
+  const path = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = path.dirname(__filename);
+  dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+
   await connectDatabase();
 
   // Clear existing data
@@ -115,7 +427,7 @@ async function seed() {
 
   // Create users
   console.log('[SEED] Creating users...');
-  const superAdmin = await User.create({
+  await User.create({
     email: 'superadmin@speeddate.dev',
     normalizedEmail: 'superadmin@speeddate.dev',
     passwordHash: await hashPassword('SuperAdmin123!'),
@@ -131,7 +443,7 @@ async function seed() {
     accountStatus: 'active',
   });
 
-  const moderator = await User.create({
+  await User.create({
     email: 'moderator@speeddate.dev',
     normalizedEmail: 'moderator@speeddate.dev',
     passwordHash: await hashPassword('Moderator123!'),
@@ -141,14 +453,70 @@ async function seed() {
 
   // Create participants
   const participantData = [
-    { firstName: 'Emma', lastName: 'Johnson', email: 'emma@example.com', age: 28, interests: ['travel', 'hiking', 'coffee', 'music'], bio: 'Adventure seeker and coffee lover.' },
-    { firstName: 'James', lastName: 'Smith', email: 'james@example.com', age: 32, interests: ['music', 'food', 'fitness', 'travel'], bio: 'Musician and foodie.' },
-    { firstName: 'Sofia', lastName: 'Garcia', email: 'sofia@example.com', age: 26, interests: ['books', 'coffee', 'art', 'travel'], bio: 'Bookworm and artist.' },
-    { firstName: 'Michael', lastName: 'Brown', email: 'michael@example.com', age: 30, interests: ['cooking', 'hiking', 'music', 'fitness'], bio: 'Chef and outdoor enthusiast.' },
-    { firstName: 'Olivia', lastName: 'Davis', email: 'olivia@example.com', age: 29, interests: ['yoga', 'reading', 'travel', 'photography'], bio: 'Yoga instructor and world traveler.' },
-    { firstName: 'William', lastName: 'Wilson', email: 'william@example.com', age: 33, interests: ['technology', 'gaming', 'movies', 'music'], bio: 'Tech enthusiast and movie buff.' },
-    { firstName: 'Ava', lastName: 'Martinez', email: 'ava@example.com', age: 27, interests: ['dancing', 'fitness', 'food', 'travel'], bio: 'Dancer and foodie.' },
-    { firstName: 'Alexander', lastName: 'Anderson', email: 'alexander@example.com', age: 31, interests: ['sports', 'travel', 'music', 'cooking'], bio: 'Sports fan and amateur chef.' },
+    {
+      firstName: 'Emma',
+      lastName: 'Johnson',
+      email: 'emma@example.com',
+      age: 28,
+      interests: ['travel', 'hiking', 'coffee', 'music'],
+      bio: 'Adventure seeker and coffee lover.',
+    },
+    {
+      firstName: 'James',
+      lastName: 'Smith',
+      email: 'james@example.com',
+      age: 32,
+      interests: ['music', 'food', 'fitness', 'travel'],
+      bio: 'Musician and foodie.',
+    },
+    {
+      firstName: 'Sofia',
+      lastName: 'Garcia',
+      email: 'sofia@example.com',
+      age: 26,
+      interests: ['books', 'coffee', 'art', 'travel'],
+      bio: 'Bookworm and artist.',
+    },
+    {
+      firstName: 'Michael',
+      lastName: 'Brown',
+      email: 'michael@example.com',
+      age: 30,
+      interests: ['cooking', 'hiking', 'music', 'fitness'],
+      bio: 'Chef and outdoor enthusiast.',
+    },
+    {
+      firstName: 'Olivia',
+      lastName: 'Davis',
+      email: 'olivia@example.com',
+      age: 29,
+      interests: ['yoga', 'reading', 'travel', 'photography'],
+      bio: 'Yoga instructor and world traveler.',
+    },
+    {
+      firstName: 'William',
+      lastName: 'Wilson',
+      email: 'william@example.com',
+      age: 33,
+      interests: ['technology', 'gaming', 'movies', 'music'],
+      bio: 'Tech enthusiast and movie buff.',
+    },
+    {
+      firstName: 'Ava',
+      lastName: 'Martinez',
+      email: 'ava@example.com',
+      age: 27,
+      interests: ['dancing', 'fitness', 'food', 'travel'],
+      bio: 'Dancer and foodie.',
+    },
+    {
+      firstName: 'Alexander',
+      lastName: 'Anderson',
+      email: 'alexander@example.com',
+      age: 31,
+      interests: ['sports', 'travel', 'music', 'cooking'],
+      bio: 'Sports fan and amateur chef.',
+    },
   ];
 
   const participants: InstanceType<typeof User>[] = [];
@@ -188,7 +556,8 @@ async function seed() {
   const event = await Event.create({
     name: 'Autumn Speed Dating Mixer',
     slug: 'autumn-speed-dating-2026',
-    description: 'Join us for an evening of meaningful connections, guided conversations, and a chance to meet someone special.',
+    description:
+      'Join us for an evening of meaningful connections, guided conversations, and a chance to meet someone special.',
     venue: 'The Grand Ballroom, Downtown',
     timezone: 'America/New_York',
     startAt: new Date('2026-11-15T19:00:00'),
@@ -225,7 +594,9 @@ async function seed() {
     weight: q.weight,
     scoringModel: ScoringModel.Similarity,
     required: true,
-    dealBreakerConfig: q.dealBreaker ? { enabled: true, optionIds: ['opt-5'], action: 'exclude' as const } : undefined,
+    dealBreakerConfig: q.dealBreaker
+      ? { enabled: true, optionIds: ['opt-5'], action: 'exclude' as const }
+      : undefined,
     tags: [q.category],
     displayOrder: index,
     active: true,

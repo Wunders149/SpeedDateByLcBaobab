@@ -30,7 +30,10 @@ export function Layout() {
               Events
             </Link>
             {user && (
-              <Link to="/dashboard" className="text-sm font-medium text-gray-600 hover:text-rose-600">
+              <Link
+                to="/dashboard"
+                className="text-sm font-medium text-gray-600 hover:text-rose-600"
+              >
                 Dashboard
               </Link>
             )}
@@ -46,7 +49,10 @@ export function Layout() {
               <div className="h-8 w-20 animate-pulse rounded-full bg-gray-200" />
             ) : user ? (
               <>
-                <Link to="/profile" className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-rose-600">
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-rose-600"
+                >
                   <User className="h-4 w-4" />
                   Profile
                 </Link>
@@ -77,10 +83,7 @@ export function Layout() {
           </div>
 
           {/* Mobile menu button */}
-          <button
-            className="md:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
+          <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
@@ -89,33 +92,56 @@ export function Layout() {
         {mobileMenuOpen && (
           <div className="border-t border-rose-100 bg-white px-4 py-4 md:hidden">
             <div className="flex flex-col gap-3">
-              <Link to="/events" className="text-sm font-medium text-gray-600" onClick={() => setMobileMenuOpen(false)}>
+              <Link
+                to="/events"
+                className="text-sm font-medium text-gray-600"
+                onClick={() => setMobileMenuOpen(false)}
+              >
                 Events
               </Link>
               {user && (
-                <Link to="/dashboard" className="text-sm font-medium text-gray-600" onClick={() => setMobileMenuOpen(false)}>
+                <Link
+                  to="/dashboard"
+                  className="text-sm font-medium text-gray-600"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
                   Dashboard
                 </Link>
               )}
               {isAdmin && (
-                <Link to="/admin" className="text-sm font-medium text-gray-600" onClick={() => setMobileMenuOpen(false)}>
+                <Link
+                  to="/admin"
+                  className="text-sm font-medium text-gray-600"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
                   Admin
                 </Link>
               )}
               <hr className="border-rose-100" />
               {user ? (
                 <button
-                  onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
+                  onClick={() => {
+                    handleLogout();
+                    setMobileMenuOpen(false);
+                  }}
                   className="text-left text-sm font-medium text-gray-600"
                 >
                   Logout
                 </button>
               ) : (
                 <div className="flex gap-2">
-                  <Link to="/login" className="flex-1 rounded-full border border-gray-200 px-4 py-2 text-center text-sm font-medium" onClick={() => setMobileMenuOpen(false)}>
+                  <Link
+                    to="/login"
+                    className="flex-1 rounded-full border border-gray-200 px-4 py-2 text-center text-sm font-medium"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
                     Log in
                   </Link>
-                  <Link to="/register" className="flex-1 rounded-full bg-rose-500 px-4 py-2 text-center text-sm font-semibold text-white" onClick={() => setMobileMenuOpen(false)}>
+                  <Link
+                    to="/register"
+                    className="flex-1 rounded-full bg-rose-500 px-4 py-2 text-center text-sm font-semibold text-white"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
                     Join now
                   </Link>
                 </div>
@@ -132,7 +158,9 @@ export function Layout() {
       <footer className="border-t border-rose-100 bg-white py-8">
         <div className="mx-auto max-w-7xl px-4 text-center text-sm text-gray-500">
           <p>&copy; 2026 SpeedDate. All rights reserved.</p>
-          <p className="mt-2">Made with <Heart className="inline h-4 w-4 text-rose-500" /> for meaningful connections</p>
+          <p className="mt-2">
+            Made with <Heart className="inline h-4 w-4 text-rose-500" /> for meaningful connections
+          </p>
         </div>
       </footer>
     </div>

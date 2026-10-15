@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
-import { Users, Calendar, FileText, Heart, Activity, Shield } from 'lucide-react';
+import { Users, Calendar, FileText, Heart, Activity } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface DashboardData {
@@ -61,7 +61,9 @@ export function AdminPage() {
               <Users className="h-5 w-5 text-rose-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{dashboard?.overview.totalParticipants ?? 0}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {dashboard?.overview.totalParticipants ?? 0}
+              </p>
               <p className="text-sm text-gray-500">Participants</p>
             </div>
           </div>
@@ -72,7 +74,9 @@ export function AdminPage() {
               <Calendar className="h-5 w-5 text-purple-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{dashboard?.overview.totalEvents ?? 0}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {dashboard?.overview.totalEvents ?? 0}
+              </p>
               <p className="text-sm text-gray-500">Events</p>
             </div>
           </div>
@@ -83,7 +87,9 @@ export function AdminPage() {
               <FileText className="h-5 w-5 text-yellow-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{dashboard?.overview.pendingRegistrations ?? 0}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {dashboard?.overview.pendingRegistrations ?? 0}
+              </p>
               <p className="text-sm text-gray-500">Pending</p>
             </div>
           </div>
@@ -94,7 +100,9 @@ export function AdminPage() {
               <Heart className="h-5 w-5 text-green-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">{dashboard?.overview.approvedRegistrations ?? 0}</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {dashboard?.overview.approvedRegistrations ?? 0}
+              </p>
               <p className="text-sm text-gray-500">Approved</p>
             </div>
           </div>
@@ -140,7 +148,10 @@ export function AdminPage() {
         <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
         <div className="mt-4 space-y-3">
           {dashboard?.recentActivity?.slice(0, 5).map((activity) => (
-            <div key={activity._id} className="flex items-center justify-between rounded-lg bg-gray-50 p-3">
+            <div
+              key={activity._id}
+              className="flex items-center justify-between rounded-lg bg-gray-50 p-3"
+            >
               <div className="flex items-center gap-3">
                 <Activity className="h-4 w-4 text-gray-400" />
                 <span className="text-sm text-gray-700">{activity.action}</span>
@@ -149,9 +160,7 @@ export function AdminPage() {
                 {new Date(activity.timestamp).toLocaleString()}
               </span>
             </div>
-          )) ?? (
-            <p className="text-sm text-gray-500">No recent activity</p>
-          )}
+          )) ?? <p className="text-sm text-gray-500">No recent activity</p>}
         </div>
       </div>
     </div>

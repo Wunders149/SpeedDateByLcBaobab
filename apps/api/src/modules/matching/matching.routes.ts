@@ -11,245 +11,289 @@ import { validate } from '../../middleware/validate.js';
 import { generateMatchesSchema } from '@speed-date/shared';
 import { logAudit } from '../../utils/audit.js';
 import { AppError } from '../../middleware/errorHandler.js';
-import { calculateCompatibility, globalOptimalMatching, compatibilityRanking, ALGORITHM_VERSION } from '@speed-date/shared';
+import { globalOptimalMatching, compatibilityRanking, ALGORITHM_VERSION } from '@speed-date/shared';
 import { Notification } from '../../models/Notification.js';
 
 const router = Router();
 
 // ─── Admin: Generate Matches ─────────────────────────────────────────────────
 
-router.post('/admin/events/:eventId/matches/generate', authenticate, requireAdmin, validate(generateMatchesSchema), async (req: Request, res: Response) => {
-  const { eventId } = req.params;
-  const { mode, minimumThreshold, dealBreakerAction, allowMultipleMatches, respectNoRepeat } = req.body;
+router.post(
+  '/admin/events/:eventId/matches/generate',
+  authenticate,
+  requireAdmin,
+  validate(generateMatchesSchema),
+  async (req: Request, res: Response) => {
+    const { eventId } = req.params;
+    const { mode, minimumThreshold, dealBreakerAction, allowMultipleMatches, respectNoRepeat } =
+      req.body;
 
-  const event = await Event.findById(eventId);
-  if (!event) throw new AppError('NOT_FOUND', 'Event not found', 404);
-  if (!event.questionnaireVersionId) throw new AppError('NO_QUESTIONNAIRE', 'No questionnaire configured', 404);
+    const event = await Event.findById(eventId);
+    if (!event) throw new AppError('NOT_FOUND', 'Event not found', 404);
+    if (!event.questionnaireVersionId)
+      throw new AppError('NO_QUESTIONNAIRE', 'No questionnaire configured', 404);
 
-  // Get approved registrations
-  const registrations = await Registration.find({
-    eventId: eventId as string,
-    registrationStatus: { $in: ['approved', 'checked_in'] },
-  });
-
-  if (registrations.length < 2) {
-    throw new AppError('INSUFFICIENT_PARTICIPANTS', 'Need at least 2 approved participants', 400);
-  }
-
-  // Get questionnaire responses
-  const responses = await QuestionnaireResponse.find({
-    eventId: eventId as string,
-    questionnaireVersionId: event.questionnaireVersionId,
-    completionStatus: 'submitted',
-  });
-
-  const responseMap = new Map(responses.map((r) => [r.participantId.toString(), r]));
-
-  // Build participant data
-  const questionnaire = await QuestionnaireVersion.findById(event.questionnaireVersionId);
-  const participants = registrations
-    .filter((reg) => responseMap.has(reg.participantId.toString()))
-    .map((reg) => {
-      const response = responseMap.get(reg.participantId.toString())!;
-      return {
-        id: reg.participantId.toString(),
-        answers: response.answers as unknown as Array<{ questionId: string; value: number | string | string[] }>,
-        eligible: true,
-        consented: true,
-        completedQuestionnaire: true,
-        withdrawn: false,
-        suspended: false,
-      };
+    // Get approved registrations
+    const registrations = await Registration.find({
+      eventId: eventId as string,
+      registrationStatus: { $in: ['approved', 'checked_in'] },
     });
 
-  if (participants.length < 2) {
-    throw new AppError('INSUFFICIENT_DATA', 'Need at least 2 participants with completed questionnaires', 400);
-  }
+    if (registrations.length < 2) {
+      throw new AppError('INSUFFICIENT_PARTICIPANTS', 'Need at least 2 approved participants', 400);
+    }
 
-  const config = {
-    mode,
-    minimumThreshold,
-    dealBreakerAction,
-    allowMultipleMatches,
-    respectNoRepeat,
-  };
+    // Get questionnaire responses
+    const responses = await QuestionnaireResponse.find({
+      eventId: eventId as string,
+      questionnaireVersionId: event.questionnaireVersionId,
+      completionStatus: 'submitted',
+    });
 
-  // Generate matches
-  const matchRun = await MatchRun.create({
-    eventId: eventId as string,
-    algorithmVersion: ALGORITHM_VERSION,
-    configurationSnapshot: {
+    const responseMap = new Map(responses.map((r) => [r.participantId.toString(), r]));
+
+    // Build participant data
+    const questionnaire = await QuestionnaireVersion.findById(event.questionnaireVersionId);
+    const participants = registrations
+      .filter((reg) => responseMap.has(reg.participantId.toString()))
+      .map((reg) => {
+        const response = responseMap.get(reg.participantId.toString())!;
+        return {
+          id: reg.participantId.toString(),
+          answers: response.answers as unknown as Array<{
+            questionId: string;
+            value: number | string | string[];
+          }>,
+          eligible: true,
+          consented: true,
+          completedQuestionnaire: true,
+          withdrawn: false,
+          suspended: false,
+        };
+      });
+
+    if (participants.length < 2) {
+      throw new AppError(
+        'INSUFFICIENT_DATA',
+        'Need at least 2 participants with completed questionnaires',
+        400,
+      );
+    }
+
+    const config = {
       mode,
       minimumThreshold,
       dealBreakerAction,
       allowMultipleMatches,
       respectNoRepeat,
-      categoryWeights: questionnaire!.categoryWeights,
-    },
-    questionnaireVersionId: event.questionnaireVersionId,
-    status: 'pending',
-    initiatedBy: req.user!.userId,
-  });
+    };
 
-  let matchPairs;
-  if (mode === 'global_optimal') {
-    matchPairs = globalOptimalMatching(participants, questionnaire!.questionSnapshots as never, config, ALGORITHM_VERSION);
-  } else {
-    const ranking = compatibilityRanking(participants, questionnaire!.questionSnapshots as never, config, 10, ALGORITHM_VERSION);
-    // Flatten ranking to unique pairs
-    const seen = new Set<string>();
-    matchPairs = [];
-    for (const [, candidates] of ranking) {
-      for (const candidate of candidates) {
-        const key = [candidate.participantAId, candidate.participantBId].sort().join('-');
-        if (!seen.has(key)) {
-          seen.add(key);
-          matchPairs.push(candidate);
+    // Generate matches
+    const matchRun = await MatchRun.create({
+      eventId: eventId as string,
+      algorithmVersion: ALGORITHM_VERSION,
+      configurationSnapshot: {
+        mode,
+        minimumThreshold,
+        dealBreakerAction,
+        allowMultipleMatches,
+        respectNoRepeat,
+        categoryWeights: questionnaire!.categoryWeights,
+      },
+      questionnaireVersionId: event.questionnaireVersionId,
+      status: 'pending',
+      initiatedBy: req.user!.userId,
+    });
+
+    let matchPairs;
+    if (mode === 'global_optimal') {
+      matchPairs = globalOptimalMatching(
+        participants,
+        questionnaire!.questionSnapshots as never,
+        config,
+        ALGORITHM_VERSION,
+      );
+    } else {
+      const ranking = compatibilityRanking(
+        participants,
+        questionnaire!.questionSnapshots as never,
+        config,
+        10,
+        ALGORITHM_VERSION,
+      );
+      // Flatten ranking to unique pairs
+      const seen = new Set<string>();
+      matchPairs = [];
+      for (const [, candidates] of ranking) {
+        for (const candidate of candidates) {
+          const key = [candidate.participantAId, candidate.participantBId].sort().join('-');
+          if (!seen.has(key)) {
+            seen.add(key);
+            matchPairs.push(candidate);
+          }
         }
       }
     }
-  }
 
-  // Create match documents
-  const matches = await Match.insertMany(
-    matchPairs.map((pair) => ({
-      eventId: eventId as string,
-      matchRunId: matchRun._id,
-      participantAId: pair.participantAId,
-      participantBId: pair.participantBId,
-      directionalScoreAtoB: pair.mutualScore,
-      directionalScoreBtoA: pair.mutualScore,
-      mutualCompatibilityScore: pair.mutualScore,
-      categoryScores: pair.categoryScores,
-      eligibilityMetadata: {
-        eligible: pair.eligible,
-        exclusionReasons: pair.exclusionReasons,
+    // Create match documents
+    const matches = await Match.insertMany(
+      matchPairs.map((pair) => ({
+        eventId: eventId as string,
+        matchRunId: matchRun._id,
+        participantAId: pair.participantAId,
+        participantBId: pair.participantBId,
+        directionalScoreAtoB: pair.mutualScore,
+        directionalScoreBtoA: pair.mutualScore,
+        mutualCompatibilityScore: pair.mutualScore,
+        categoryScores: pair.categoryScores,
+        eligibilityMetadata: {
+          eligible: pair.eligible,
+          exclusionReasons: pair.exclusionReasons,
+        },
+        matchStatus: 'provisional',
+      })),
+    );
+
+    matchRun.status = 'generated';
+    matchRun.generatedAt = new Date();
+    await matchRun.save();
+
+    await logAudit(req, 'matches.generated', 'match_run', matchRun._id.toString(), undefined, {
+      matchCount: matches.length,
+      mode,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        matchRun: {
+          id: matchRun._id,
+          status: matchRun.status,
+          matchCount: matches.length,
+        },
       },
-      matchStatus: 'provisional',
-    })),
-  );
-
-  matchRun.status = 'generated';
-  matchRun.generatedAt = new Date();
-  await matchRun.save();
-
-  await logAudit(req, 'matches.generated', 'match_run', matchRun._id.toString(), undefined, {
-    matchCount: matches.length,
-    mode,
-  });
-
-  res.json({
-    success: true,
-    data: {
-      matchRun: {
-        id: matchRun._id,
-        status: matchRun.status,
-        matchCount: matches.length,
-      },
-    },
-  });
-});
+    });
+  },
+);
 
 // ─── Admin: Get Matches ──────────────────────────────────────────────────────
 
-router.get('/admin/events/:eventId/matches', authenticate, requireAdmin, async (req: Request, res: Response) => {
-  const { eventId } = req.params;
-  const { status, page = '1', limit = '50' } = req.query;
+router.get(
+  '/admin/events/:eventId/matches',
+  authenticate,
+  requireAdmin,
+  async (req: Request, res: Response) => {
+    const { eventId } = req.params;
+    const { status, page = '1', limit = '50' } = req.query;
 
-  const query: Record<string, unknown> = { eventId };
-  if (status) query.matchStatus = status;
+    const query: Record<string, unknown> = { eventId };
+    if (status) query.matchStatus = status;
 
-  const pageNum = Math.max(1, parseInt(page as string, 10));
-  const limitNum = Math.min(100, Math.max(1, parseInt(limit as string, 10)));
-  const skip = (pageNum - 1) * limitNum;
+    const pageNum = Math.max(1, parseInt(page as string, 10));
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit as string, 10)));
+    const skip = (pageNum - 1) * limitNum;
 
-  const [matches, total] = await Promise.all([
-    Match.find(query)
-      .populate('participantAId', 'email')
-      .populate('participantBId', 'email')
-      .sort({ mutualCompatibilityScore: -1 })
-      .skip(skip)
-      .limit(limitNum),
-    Match.countDocuments(query),
-  ]);
+    const [matches, total] = await Promise.all([
+      Match.find(query)
+        .populate('participantAId', 'email')
+        .populate('participantBId', 'email')
+        .sort({ mutualCompatibilityScore: -1 })
+        .skip(skip)
+        .limit(limitNum),
+      Match.countDocuments(query),
+    ]);
 
-  res.json({
-    success: true,
-    data: { matches },
-    meta: { page: pageNum, limit: limitNum, total },
-  });
-});
+    res.json({
+      success: true,
+      data: { matches },
+      meta: { page: pageNum, limit: limitNum, total },
+    });
+  },
+);
 
 // ─── Admin: Finalize Matches ─────────────────────────────────────────────────
 
-router.post('/admin/events/:eventId/matches/finalize', authenticate, requireAdmin, async (req: Request, res: Response) => {
-  const { eventId } = req.params;
+router.post(
+  '/admin/events/:eventId/matches/finalize',
+  authenticate,
+  requireAdmin,
+  async (req: Request, res: Response) => {
+    const { eventId } = req.params;
 
-  const matchRun = await MatchRun.findOne({ eventId: eventId as string, status: 'generated' }).sort({ createdAt: -1 });
-  if (!matchRun) throw new AppError('NO_MATCH_RUN', 'No generated match run found', 404);
+    const matchRun = await MatchRun.findOne({
+      eventId: eventId as string,
+      status: 'generated',
+    }).sort({ createdAt: -1 });
+    if (!matchRun) throw new AppError('NO_MATCH_RUN', 'No generated match run found', 404);
 
-  await Match.updateMany(
-    { matchRunId: matchRun._id },
-    {
-      matchStatus: 'finalized',
-      finalizationMetadata: {
-        finalizedAt: new Date(),
-        finalizedBy: req.user!.userId,
-        manuallyAdjusted: false,
+    await Match.updateMany(
+      { matchRunId: matchRun._id },
+      {
+        matchStatus: 'finalized',
+        finalizationMetadata: {
+          finalizedAt: new Date(),
+          finalizedBy: req.user!.userId,
+          manuallyAdjusted: false,
+        },
       },
-    },
-  );
+    );
 
-  matchRun.status = 'finalized';
-  matchRun.finalizedAt = new Date();
-  await matchRun.save();
+    matchRun.status = 'finalized';
+    matchRun.finalizedAt = new Date();
+    await matchRun.save();
 
-  await logAudit(req, 'matches.finalized', 'match_run', matchRun._id.toString());
+    await logAudit(req, 'matches.finalized', 'match_run', matchRun._id.toString());
 
-  res.json({ success: true, data: { matchRun } });
-});
+    res.json({ success: true, data: { matchRun } });
+  },
+);
 
 // ─── Admin: Publish Matches ──────────────────────────────────────────────────
 
-router.post('/admin/events/:eventId/matches/publish', authenticate, requireAdmin, async (req: Request, res: Response) => {
-  const { eventId } = req.params;
+router.post(
+  '/admin/events/:eventId/matches/publish',
+  authenticate,
+  requireAdmin,
+  async (req: Request, res: Response) => {
+    const { eventId } = req.params;
 
-  const matchRun = await MatchRun.findOne({ eventId: eventId as string, status: 'finalized' }).sort({ createdAt: -1 });
-  if (!matchRun) throw new AppError('NO_MATCH_RUN', 'No finalized match run found', 404);
+    const matchRun = await MatchRun.findOne({
+      eventId: eventId as string,
+      status: 'finalized',
+    }).sort({ createdAt: -1 });
+    if (!matchRun) throw new AppError('NO_MATCH_RUN', 'No finalized match run found', 404);
 
-  await Match.updateMany(
-    { matchRunId: matchRun._id },
-    { matchStatus: 'published' },
-  );
+    await Match.updateMany({ matchRunId: matchRun._id }, { matchStatus: 'published' });
 
-  matchRun.status = 'published';
-  matchRun.publishedAt = new Date();
-  await matchRun.save();
+    matchRun.status = 'published';
+    matchRun.publishedAt = new Date();
+    await matchRun.save();
 
-  // Notify participants
-  const matches = await Match.find({ matchRunId: matchRun._id });
-  const notifications = matches.flatMap((match) => [
-    {
-      recipientId: match.participantAId,
-      eventId,
-      type: 'match_results_published',
-      title: 'Match Results Available',
-      message: 'Your match results are now available. Check your dashboard!',
-    },
-    {
-      recipientId: match.participantBId,
-      eventId,
-      type: 'match_results_published',
-      title: 'Match Results Available',
-      message: 'Your match results are now available. Check your dashboard!',
-    },
-  ]);
-  await Notification.insertMany(notifications);
+    // Notify participants
+    const matches = await Match.find({ matchRunId: matchRun._id });
+    const notifications = matches.flatMap((match) => [
+      {
+        recipientId: match.participantAId,
+        eventId,
+        type: 'match_results_published',
+        title: 'Match Results Available',
+        message: 'Your match results are now available. Check your dashboard!',
+      },
+      {
+        recipientId: match.participantBId,
+        eventId,
+        type: 'match_results_published',
+        title: 'Match Results Available',
+        message: 'Your match results are now available. Check your dashboard!',
+      },
+    ]);
+    await Notification.insertMany(notifications);
 
-  await logAudit(req, 'matches.published', 'match_run', matchRun._id.toString());
+    await logAudit(req, 'matches.published', 'match_run', matchRun._id.toString());
 
-  res.json({ success: true, data: { matchRun } });
-});
+    res.json({ success: true, data: { matchRun } });
+  },
+);
 
 // ─── Participant: Get My Matches ─────────────────────────────────────────────
 
@@ -258,7 +302,10 @@ router.get('/events/:eventId/my-matches', authenticate, async (req: Request, res
   const userId = req.user!.userId;
 
   // Only show published matches
-  const publishedRun = await MatchRun.findOne({ eventId: eventId as string, status: 'published' }).sort({ createdAt: -1 });
+  const publishedRun = await MatchRun.findOne({
+    eventId: eventId as string,
+    status: 'published',
+  }).sort({ createdAt: -1 });
   if (!publishedRun) {
     res.json({ success: true, data: { matches: [], message: 'Results not yet published' } });
     return;

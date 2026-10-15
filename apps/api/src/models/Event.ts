@@ -49,14 +49,24 @@ const eventSchema = new Schema<IEvent>(
     eligibleGroups: { type: [String], default: [] },
     eventMode: {
       type: String,
-      enum: ['in_person', 'quiz_based', 'guided_conversation', 'post_event_matching', 'organizer_mediated'],
+      enum: [
+        'in_person',
+        'quiz_based',
+        'guided_conversation',
+        'post_event_matching',
+        'organizer_mediated',
+      ],
       default: 'in_person',
     },
     organizerContact: { type: String, required: true },
     instructions: { type: String },
     questionnaireVersionId: { type: Schema.Types.ObjectId, ref: 'QuestionnaireVersion' },
     matchingConfiguration: {
-      mode: { type: String, enum: ['compatibility_ranking', 'global_optimal'], default: 'compatibility_ranking' },
+      mode: {
+        type: String,
+        enum: ['compatibility_ranking', 'global_optimal'],
+        default: 'compatibility_ranking',
+      },
       minimumThreshold: { type: Number, default: 0, min: 0, max: 100 },
       dealBreakerAction: { type: String, enum: ['exclude', 'flag'], default: 'exclude' },
       allowMultipleMatches: { type: Boolean, default: false },
@@ -65,7 +75,11 @@ const eventSchema = new Schema<IEvent>(
     publicationSettings: {
       showCompatibilityScores: { type: Boolean, default: true },
       showSharedInterests: { type: Boolean, default: true },
-      contactSharingMode: { type: String, enum: ['in_app', 'organizer_mediated', 'mutual_opt_in'], default: 'mutual_opt_in' },
+      contactSharingMode: {
+        type: String,
+        enum: ['in_app', 'organizer_mediated', 'mutual_opt_in'],
+        default: 'mutual_opt_in',
+      },
     },
     status: {
       type: String,
@@ -78,6 +92,5 @@ const eventSchema = new Schema<IEvent>(
 );
 
 eventSchema.index({ status: 1, startAt: -1 });
-eventSchema.index({ slug: 1 });
 
 export const Event: Model<IEvent> = mongoose.model<IEvent>('Event', eventSchema);

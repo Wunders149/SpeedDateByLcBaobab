@@ -56,4 +56,7 @@ registrationSchema.index({ eventId: 1, participantId: 1 }, { unique: true });
 registrationSchema.index({ eventId: 1, registrationStatus: 1 });
 registrationSchema.index({ participantId: 1 });
 
-export const Registration: Model<IRegistration> = mongoose.model<IRegistration>('Registration', registrationSchema);
+export const Registration: Model<IRegistration> = mongoose.model<IRegistration>(
+  'Registration',
+  registrationSchema,
+);

@@ -66,7 +66,5 @@ const questionnaireVersionSchema = new Schema<IQuestionnaireVersion>(
 
 questionnaireVersionSchema.index({ eventId: 1, version: -1 });
 
-export const QuestionnaireVersion: Model<IQuestionnaireVersion> = mongoose.model<IQuestionnaireVersion>(
-  'QuestionnaireVersion',
-  questionnaireVersionSchema,
-);
+export const QuestionnaireVersion: Model<IQuestionnaireVersion> =
+  mongoose.model<IQuestionnaireVersion>('QuestionnaireVersion', questionnaireVersionSchema);

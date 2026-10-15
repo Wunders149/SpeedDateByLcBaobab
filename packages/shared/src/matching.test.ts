@@ -11,7 +11,11 @@ import {
 } from './matching.js';
 import { QuestionCategory, ScoringModel, DEFAULT_CATEGORY_WEIGHTS } from './types.js';
 
-const createQuestion = (id: string, category: QuestionCategory, overrides: Partial<QuestionDefinition> = {}): QuestionDefinition => ({
+const createQuestion = (
+  id: string,
+  category: QuestionCategory,
+  overrides: Partial<QuestionDefinition> = {},
+): QuestionDefinition => ({
   id,
   text: `Question ${id}`,
   type: 'agreement_scale',
@@ -32,7 +36,10 @@ const createQuestion = (id: string, category: QuestionCategory, overrides: Parti
   ...overrides,
 });
 
-const createParticipant = (id: string, answers: Array<{ questionId: string; value: number | string | string[] }>): ParticipantData => ({
+const createParticipant = (
+  id: string,
+  answers: Array<{ questionId: string; value: number | string | string[] }>,
+): ParticipantData => ({
   id,
   answers,
   eligible: true,
@@ -93,9 +100,7 @@ describe('Matching Algorithm', () => {
         createQuestion('q2', QuestionCategory.Communication),
       ];
 
-      const participantA = createParticipant('a', [
-        { questionId: 'q1', value: 5 },
-      ]);
+      const participantA = createParticipant('a', [{ questionId: 'q1', value: 5 }]);
       const participantB = createParticipant('b', [
         { questionId: 'q1', value: 5 },
         { questionId: 'q2', value: 3 },

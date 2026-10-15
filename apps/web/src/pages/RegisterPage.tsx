@@ -63,14 +63,12 @@ export function RegisterPage() {
         <div className="mb-6 text-center">
           <Heart className="mx-auto h-10 w-10 text-rose-500" />
           <h1 className="mt-4 text-2xl font-bold text-gray-900">Create your account</h1>
-          <p className="mt-2 text-sm text-gray-600">Join SpeedDate and start meeting compatible people</p>
+          <p className="mt-2 text-sm text-gray-600">
+            Join SpeedDate and start meeting compatible people
+          </p>
         </div>
 
-        {error && (
-          <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">
-            {error}
-          </div>
-        )}
+        {error && <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
@@ -145,7 +143,9 @@ export function RegisterPage() {
               value={formData.dateOfBirth}
               onChange={handleChange}
               required
-              max={new Date(Date.now() - 18 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+              max={
+                new Date(Date.now() - 18 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+              }
               className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500"
             />
             <p className="mt-1 text-xs text-gray-500">You must be at least 18 years old</p>
@@ -161,7 +161,10 @@ export function RegisterPage() {
                 className="mt-1"
               />
               <span className="text-sm text-gray-600">
-                I agree to the <Link to="/rules" className="text-rose-600 hover:underline">event rules</Link>
+                I agree to the{' '}
+                <Link to="/rules" className="text-rose-600 hover:underline">
+                  event rules
+                </Link>
               </span>
             </label>
             <label className="flex items-start gap-3">
@@ -173,7 +176,10 @@ export function RegisterPage() {
                 className="mt-1"
               />
               <span className="text-sm text-gray-600">
-                I agree to the <Link to="/privacy" className="text-rose-600 hover:underline">privacy policy</Link>
+                I agree to the{' '}
+                <Link to="/privacy" className="text-rose-600 hover:underline">
+                  privacy policy
+                </Link>
               </span>
             </label>
             <label className="flex items-start gap-3">

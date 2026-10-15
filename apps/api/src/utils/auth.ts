@@ -46,7 +46,11 @@ export function hasRole(userRoles: string[], requiredRole: UserRole): boolean {
     return userRoles.includes(UserRole.EventAdmin) || userRoles.includes(UserRole.SuperAdmin);
   }
   if (requiredRole === UserRole.Moderator) {
-    return userRoles.includes(UserRole.Moderator) || userRoles.includes(UserRole.EventAdmin) || userRoles.includes(UserRole.SuperAdmin);
+    return (
+      userRoles.includes(UserRole.Moderator) ||
+      userRoles.includes(UserRole.EventAdmin) ||
+      userRoles.includes(UserRole.SuperAdmin)
+    );
   }
   return true;
 }

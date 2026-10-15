@@ -67,7 +67,8 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction): v
     return;
   }
 
-  const isAdminRole = req.user.roles.includes(UserRole.EventAdmin) || req.user.roles.includes(UserRole.SuperAdmin);
+  const isAdminRole =
+    req.user.roles.includes(UserRole.EventAdmin) || req.user.roles.includes(UserRole.SuperAdmin);
   if (!isAdminRole) {
     res.status(403).json({
       success: false,

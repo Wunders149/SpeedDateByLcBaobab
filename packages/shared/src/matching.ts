@@ -48,14 +48,6 @@ export interface ParticipantData {
 // ─── Scoring Functions ───────────────────────────────────────────────────────
 
 /**
- * Normalize a 5-point scale value to 0-1 range.
- * 1 → 0, 2 → 0.25, 3 → 0.5, 4 → 0.75, 5 → 1
- */
-function normalizeScale(value: number): number {
-  return (value - 1) / 4;
-}
-
-/**
  * Calculate similarity score for two answers on a single question.
  * Returns a value between 0 and 1.
  */
@@ -69,11 +61,7 @@ function calculateSimilarity(answerA: number, answerB: number, maxDistance: numb
  * Complementarity rewards compatible differences.
  * For example, if A prefers "leader" and B prefers "follower", that's complementary.
  */
-function calculateComplementarity(
-  answerA: number,
-  answerB: number,
-  options: Array<{ id: string; value?: number }>,
-): number {
+function calculateComplementarity(answerA: number, answerB: number): number {
   // For complementarity, we check if the combination is a "compatible difference"
   // This is a simplified model: moderate differences can be complementary
   const distance = Math.abs(answerA - answerB);
@@ -104,7 +92,7 @@ function scoreQuestionPair(
     case 'preference_scale': {
       if (typeof valA !== 'number' || typeof valB !== 'number') return null;
       if (question.scoringModel === ScoringModel.Complementarity) {
-        return calculateComplementarity(valA, valB, question.options);
+        return calculateComplementarity(valA, valB);
       }
       return calculateSimilarity(valA, valB);
     }
@@ -171,7 +159,10 @@ function calculateCategoryScores(
   answersA: Answer[],
   answersB: Answer[],
 ): CategoryScore[] {
-  const categoryMap = new Map<QuestionCategory, { totalWeight: number; weightedScore: number; answered: number; total: number }>();
+  const categoryMap = new Map<
+    QuestionCategory,
+    { totalWeight: number; weightedScore: number; answered: number; total: number }
+  >();
 
   for (const question of questions) {
     if (!question.active) continue;
@@ -334,12 +325,17 @@ export function calculateCompatibility(
   const directionalScoreBtoA = directionalScore;
 
   // Mutual score using geometric mean
-  const mutualScore = 100 * Math.sqrt(
-    (directionalScoreAtoB / 100) * (directionalScoreBtoA / 100),
-  );
+  const mutualScore = 100 * Math.sqrt((directionalScoreAtoB / 100) * (directionalScoreBtoA / 100));
 
   // Check eligibility
-  const { eligible, reasons } = checkEligibility(participantA, participantB, questions, answersA, answersB, config);
+  const { eligible, reasons } = checkEligibility(
+    participantA,
+    participantB,
+    questions,
+    answersA,
+    answersB,
+    config,
+  );
 
   // Check minimum threshold
   const meetsThreshold = mutualScore >= config.minimumThreshold;
@@ -352,7 +348,11 @@ export function calculateCompatibility(
     mutualScore: Math.round(mutualScore * 100) / 100,
     categoryScores,
     eligible: eligible && meetsThreshold,
-    exclusionReasons: eligible ? (meetsThreshold ? [] : ['Below minimum compatibility threshold']) : reasons,
+    exclusionReasons: eligible
+      ? meetsThreshold
+        ? []
+        : ['Below minimum compatibility threshold']
+      : reasons,
     algorithmVersion,
     calculatedAt: new Date().toISOString(),
   };
@@ -373,7 +373,13 @@ export function generateAllPairs(
 
   for (let i = 0; i < participants.length; i++) {
     for (let j = i + 1; j < participants.length; j++) {
-      const result = calculateCompatibility(participants[i], participants[j], questions, config, algorithmVersion);
+      const result = calculateCompatibility(
+        participants[i],
+        participants[j],
+        questions,
+        config,
+        algorithmVersion,
+      );
       pairs.push({
         participantAId: result.participantAId,
         participantBId: result.participantBId,
@@ -391,7 +397,7 @@ export function generateAllPairs(
 /**
  * Global optimal matching using a greedy maximum-weight matching algorithm.
  * For production use with large groups, consider using the Blossom algorithm.
- * 
+ *
  * Time complexity: O(n² log n) for sorting + O(n²) for greedy matching
  * Space complexity: O(n²) for the pair list
  */

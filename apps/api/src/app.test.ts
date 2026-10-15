@@ -9,7 +9,6 @@ import { hashPassword } from './utils/auth.js';
 
 describe('API Endpoints', () => {
   let authToken: string;
-  let adminToken: string;
   let testEventId: string;
 
   beforeAll(async () => {
@@ -30,7 +29,7 @@ describe('API Endpoints', () => {
     });
 
     // Create test participant
-    const participant = await User.create({
+    await User.create({
       email: 'test-user@test.com',
       normalizedEmail: 'test-user@test.com',
       passwordHash: await hashPassword('User123!'),
@@ -74,18 +73,16 @@ describe('API Endpoints', () => {
 
   describe('Authentication', () => {
     it('should register a new user', async () => {
-      const response = await request(app)
-        .post('/api/v1/auth/register')
-        .send({
-          email: 'newuser@test.com',
-          password: 'Password123!',
-          firstName: 'Test',
-          lastName: 'User',
-          dateOfBirth: '1995-01-01T00:00:00.000Z',
-          agreedToRules: true,
-          agreedToPrivacy: true,
-          consentToMatching: true,
-        });
+      const response = await request(app).post('/api/v1/auth/register').send({
+        email: 'newuser@test.com',
+        password: 'Password123!',
+        firstName: 'Test',
+        lastName: 'User',
+        dateOfBirth: '1995-01-01T00:00:00.000Z',
+        agreedToRules: true,
+        agreedToPrivacy: true,
+        consentToMatching: true,
+      });
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
@@ -93,12 +90,10 @@ describe('API Endpoints', () => {
     });
 
     it('should login with valid credentials', async () => {
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send({
-          email: 'test-user@test.com',
-          password: 'User123!',
-        });
+      const response = await request(app).post('/api/v1/auth/login').send({
+        email: 'test-user@test.com',
+        password: 'User123!',
+      });
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -106,12 +101,10 @@ describe('API Endpoints', () => {
     });
 
     it('should reject invalid credentials', async () => {
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send({
-          email: 'test-user@test.com',
-          password: 'wrongpassword',
-        });
+      const response = await request(app).post('/api/v1/auth/login').send({
+        email: 'test-user@test.com',
+        password: 'wrongpassword',
+      });
 
       expect(response.status).toBe(401);
     });

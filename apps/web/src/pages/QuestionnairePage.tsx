@@ -33,7 +33,8 @@ export function QuestionnairePage() {
 
   const { data: eventsData } = useQuery({
     queryKey: ['events'],
-    queryFn: () => api('/api/v1/events') as unknown as { data: { events: Array<{ id: string; name: string }> } },
+    queryFn: () =>
+      api('/api/v1/events') as unknown as { data: { events: Array<{ id: string; name: string }> } },
     enabled: !!user,
   });
 
@@ -42,7 +43,8 @@ export function QuestionnairePage() {
 
   const { data: questionnaireData, isLoading } = useQuery({
     queryKey: ['questionnaire', selectedEvent],
-    queryFn: () => api<{ data: QuestionnaireData }>(`/api/v1/events/${selectedEvent}/questionnaire`),
+    queryFn: () =>
+      api<{ data: QuestionnaireData }>(`/api/v1/events/${selectedEvent}/questionnaire`),
     enabled: !!selectedEvent,
   });
 
@@ -158,7 +160,9 @@ export function QuestionnairePage() {
           {/* Progress Bar */}
           <div className="rounded-xl border border-rose-100 bg-white p-4">
             <div className="flex items-center justify-between text-sm text-gray-600">
-              <span>Question {currentQuestion + 1} of {questions.length}</span>
+              <span>
+                Question {currentQuestion + 1} of {questions.length}
+              </span>
               <span>{Math.round(progress)}%</span>
             </div>
             <div className="mt-2 h-2 rounded-full bg-gray-200">

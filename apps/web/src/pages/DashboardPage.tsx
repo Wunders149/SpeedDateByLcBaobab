@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import { Calendar, FileText, Heart, Bell, User, Clock, MapPin, CheckCircle } from 'lucide-react';
+import { Calendar, FileText, Heart, Bell, User, Clock, MapPin } from 'lucide-react';
 
 interface Registration {
   id: string;
@@ -41,11 +41,16 @@ export function DashboardPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'approved': return 'bg-green-100 text-green-700';
-      case 'pending_review': return 'bg-yellow-100 text-yellow-700';
-      case 'waitlisted': return 'bg-orange-100 text-orange-700';
-      case 'rejected': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-700';
+      case 'approved':
+        return 'bg-green-100 text-green-700';
+      case 'pending_review':
+        return 'bg-yellow-100 text-yellow-700';
+      case 'waitlisted':
+        return 'bg-orange-100 text-orange-700';
+      case 'rejected':
+        return 'bg-red-100 text-red-700';
+      default:
+        return 'bg-gray-100 text-gray-700';
     }
   };
 
@@ -57,7 +62,9 @@ export function DashboardPage() {
           Welcome back, {profile?.displayName?.split(' ')[0] ?? 'there'}!
         </h1>
         <p className="mt-2 text-rose-100">
-          {user ? 'Here\'s what\'s happening with your SpeedDate journey.' : 'Sign in to see your dashboard.'}
+          {user
+            ? "Here's what's happening with your SpeedDate journey."
+            : 'Sign in to see your dashboard.'}
         </p>
       </div>
 
@@ -81,7 +88,9 @@ export function DashboardPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">
-                {registrationsData?.data.registrations?.filter((r: Registration) => r.questionnaireStatus === 'submitted').length ?? 0}
+                {registrationsData?.data.registrations?.filter(
+                  (r: Registration) => r.questionnaireStatus === 'submitted',
+                ).length ?? 0}
               </p>
               <p className="text-sm text-gray-500">Questionnaires Done</p>
             </div>
@@ -136,7 +145,9 @@ export function DashboardPage() {
                     </div>
                   </div>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(event.status)}`}>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(event.status)}`}
+                >
                   {event.status.replace('_', ' ')}
                 </span>
               </div>

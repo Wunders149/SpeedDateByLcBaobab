@@ -56,7 +56,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const refreshUser = useCallback(async () => {
     try {
-      const response = await api<{ data: { user: User; profile: Profile | null } }>('/api/v1/auth/me');
+      const response = await api<{ data: { user: User; profile: Profile | null } }>(
+        '/api/v1/auth/me',
+      );
       setUser(response.data.user);
       setProfile(response.data.profile);
     } catch {

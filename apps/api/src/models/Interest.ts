@@ -26,9 +26,6 @@ const interestSchema = new Schema<IInterest>(
 );
 
 // Unique directional pair per event
-interestSchema.index(
-  { eventId: 1, fromParticipantId: 1, toParticipantId: 1 },
-  { unique: true },
-);
+interestSchema.index({ eventId: 1, fromParticipantId: 1, toParticipantId: 1 }, { unique: true });
 
 export const Interest: Model<IInterest> = mongoose.model<IInterest>('Interest', interestSchema);

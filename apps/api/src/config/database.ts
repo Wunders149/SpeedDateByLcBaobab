@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI ?? 'mongodb://localhost:27017/speeddate';
-
 export async function connectDatabase(): Promise<void> {
+  const MONGODB_URI = process.env.MONGODB_URI ?? 'mongodb://localhost:27017/speeddate';
+
   try {
     await mongoose.connect(MONGODB_URI, {
       maxPoolSize: 10,

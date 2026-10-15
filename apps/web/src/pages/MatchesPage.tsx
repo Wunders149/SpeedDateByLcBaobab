@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
-import { Heart, Star, TrendingUp } from 'lucide-react';
+import { Heart } from 'lucide-react';
 
 interface Match {
   id: string;
@@ -26,7 +26,9 @@ export function MatchesPage() {
     queryKey: ['my-matches'],
     queryFn: async () => {
       // Get first event
-      const eventsResponse = await api('/api/v1/events') as unknown as { data: { events: Array<{ id: string }> } };
+      const eventsResponse = (await api('/api/v1/events')) as unknown as {
+        data: { events: Array<{ id: string }> };
+      };
       const eventId = eventsResponse.data.events[0]?.id;
       if (!eventId) return { matches: [] };
       return api(`/api/v1/events/${eventId}/my-matches`) as unknown as { data: MatchesData };
@@ -77,38 +79,51 @@ export function MatchesPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {matches.map((match: Match) => (
-            <div key={match.id} className="rounded-2xl border border-rose-100 bg-white p-6 shadow-sm">
+            <div
+              key={match.id}
+              className="rounded-2xl border border-rose-100 bg-white p-6 shadow-sm"
+            >
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-100">
                     <Heart className="h-6 w-6 text-rose-600" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">Match #{match.participantId.slice(0, 8)}</h3>
+                    <h3 className="font-semibold text-gray-900">
+                      Match #{match.participantId.slice(0, 8)}
+                    </h3>
                     <p className="text-sm text-gray-500">Compatibility Score</p>
                   </div>
                 </div>
-                <span className={`rounded-full px-3 py-1 text-lg font-bold ${getScoreColor(match.mutualScore)}`}>
+                <span
+                  className={`rounded-full px-3 py-1 text-lg font-bold ${getScoreColor(match.mutualScore)}`}
+                >
                   {match.mutualScore}%
                 </span>
               </div>
 
               {/* Category Breakdown */}
               <div className="mt-4 space-y-2">
-                {match.categoryScores.slice(0, 3).map((cat: { category: string; score: number; weight: number }) => (
-                  <div key={cat.category} className="flex items-center justify-between text-sm">
-                    <span className="capitalize text-gray-600">{cat.category.replace('_', ' ')}</span>
-                    <div className="flex items-center gap-2">
-                      <div className="h-2 w-24 rounded-full bg-gray-200">
-                        <div
-                          className="h-2 rounded-full bg-rose-500"
-                          style={{ width: `${cat.score * 100}%` }}
-                        />
+                {match.categoryScores
+                  .slice(0, 3)
+                  .map((cat: { category: string; score: number; weight: number }) => (
+                    <div key={cat.category} className="flex items-center justify-between text-sm">
+                      <span className="capitalize text-gray-600">
+                        {cat.category.replace('_', ' ')}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 w-24 rounded-full bg-gray-200">
+                          <div
+                            className="h-2 rounded-full bg-rose-500"
+                            style={{ width: `${cat.score * 100}%` }}
+                          />
+                        </div>
+                        <span className="w-8 text-right text-gray-500">
+                          {Math.round(cat.score * 100)}%
+                        </span>
                       </div>
-                      <span className="w-8 text-right text-gray-500">{Math.round(cat.score * 100)}%</span>
                     </div>
-                  </div>
-                ))}
+                  ))}
               </div>
 
               <div className="mt-4 flex gap-2">

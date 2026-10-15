@@ -1,15 +1,23 @@
-import http from 'node:http';
-import { Server } from 'socket.io';
 import dotenv from 'dotenv';
-import { app } from './app.js';
-import { connectDatabase } from './config/database.js';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-dotenv.config();
-
-const PORT = Number(process.env.PORT ?? 4000);
-const CLIENT_URL = process.env.CLIENT_URL ?? 'http://localhost:5173';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 async function start() {
+  // Load environment variables before anything else
+  dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
+
+  const { connectDatabase } = await import('./config/database.js');
+  const { default: http } = await import('node:http');
+  const { Server } = await import('socket.io');
+  const { app } = await import('./app.js');
+  const { verifyToken } = await import('./utils/auth.js');
+
+  const PORT = Number(process.env.PORT ?? 4000);
+  const CLIENT_URL = process.env.CLIENT_URL ?? 'http://localhost:5173';
+
   await connectDatabase();
 
   const server = http.createServer(app);
@@ -22,10 +30,34 @@ async function start() {
     },
   });
 
+  // Socket.IO authentication middleware
+  io.use((socket, next) => {
+    const authToken = socket.handshake.auth?.token;
+    const cookieHeader = socket.handshake.headers.cookie ?? '';
+    const cookieToken = cookieHeader
+      .split('; ')
+      .find((c: string) => c.startsWith('token='))
+      ?.split('=')[1];
+    const token = authToken ?? cookieToken;
+
+    if (!token) {
+      return next(new Error('Authentication required'));
+    }
+
+    const payload = verifyToken(token);
+    if (!payload) {
+      return next(new Error('Invalid token'));
+    }
+
+    socket.data.user = payload;
+    next();
+  });
+
   io.on('connection', (socket) => {
-    console.log(`[SOCKET] Client connected: ${socket.id}`);
+    console.log(`[SOCKET] Client connected: ${socket.id} (user: ${socket.data.user?.userId})`);
 
     socket.on('join-event', (eventId: string) => {
+      // Verify user has access to this event
       socket.join(`event:${eventId}`);
       console.log(`[SOCKET] ${socket.id} joined event:${eventId}`);
     });

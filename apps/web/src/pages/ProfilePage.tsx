@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '../lib/api';
-import { User, Mail, Calendar, Heart, Globe, MessageCircle } from 'lucide-react';
+import { User, Mail, Calendar, Heart, MessageCircle } from 'lucide-react';
 
 export function ProfilePage() {
   const { user, profile } = useAuth();
@@ -52,9 +50,7 @@ export function ProfilePage() {
             <Calendar className="h-5 w-5 text-rose-500" />
             <div>
               <p className="text-xs text-gray-500">Member since</p>
-              <p className="text-sm font-medium text-gray-900">
-                {new Date().toLocaleDateString()}
-              </p>
+              <p className="text-sm font-medium text-gray-900">{new Date().toLocaleDateString()}</p>
             </div>
           </div>
         </div>
@@ -75,7 +71,10 @@ export function ProfilePage() {
               <p className="text-sm font-medium text-gray-500">Interests</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {profile.publicProfile.interests.map((interest) => (
-                  <span key={interest} className="rounded-full bg-rose-100 px-3 py-1 text-sm text-rose-700">
+                  <span
+                    key={interest}
+                    className="rounded-full bg-rose-100 px-3 py-1 text-sm text-rose-700"
+                  >
                     {interest}
                   </span>
                 ))}
@@ -87,7 +86,10 @@ export function ProfilePage() {
               <p className="text-sm font-medium text-gray-500">Languages</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {profile.publicProfile.languages.map((lang) => (
-                  <span key={lang} className="rounded-full bg-purple-100 px-3 py-1 text-sm text-purple-700">
+                  <span
+                    key={lang}
+                    className="rounded-full bg-purple-100 px-3 py-1 text-sm text-purple-700"
+                  >
                     {lang}
                   </span>
                 ))}
@@ -99,7 +101,10 @@ export function ProfilePage() {
               <p className="text-sm font-medium text-gray-500">Values</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {profile.publicProfile.values.map((value) => (
-                  <span key={value} className="rounded-full bg-green-100 px-3 py-1 text-sm text-green-700">
+                  <span
+                    key={value}
+                    className="rounded-full bg-green-100 px-3 py-1 text-sm text-green-700"
+                  >
                     {value}
                   </span>
                 ))}

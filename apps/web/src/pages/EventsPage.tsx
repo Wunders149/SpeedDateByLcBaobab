@@ -55,7 +55,10 @@ export function EventsPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2">
           {events.map((event) => (
-            <div key={event.id} className="rounded-2xl border border-rose-100 bg-white p-6 shadow-sm transition hover:shadow-md">
+            <div
+              key={event.id}
+              className="rounded-2xl border border-rose-100 bg-white p-6 shadow-sm transition hover:shadow-md"
+            >
               <div className="flex items-start justify-between">
                 <h2 className="text-xl font-semibold text-gray-900">{event.name}</h2>
                 <span className="rounded-full bg-rose-100 px-3 py-1 text-xs font-medium text-rose-700">

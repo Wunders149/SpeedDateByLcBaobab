@@ -103,10 +103,10 @@ export type QuestionCategory = (typeof QuestionCategory)[keyof typeof QuestionCa
 export const DEFAULT_CATEGORY_WEIGHTS: Record<QuestionCategory, number> = {
   [QuestionCategory.Values]: 0.25,
   [QuestionCategory.Communication]: 0.15,
-  [QuestionCategory.Personality]: 0.20,
+  [QuestionCategory.Personality]: 0.2,
   [QuestionCategory.Lifestyle]: 0.15,
-  [QuestionCategory.FutureAspirations]: 0.10,
-  [QuestionCategory.Interests]: 0.10,
+  [QuestionCategory.FutureAspirations]: 0.1,
+  [QuestionCategory.Interests]: 0.1,
   [QuestionCategory.FunSpontaneity]: 0.05,
 };
 

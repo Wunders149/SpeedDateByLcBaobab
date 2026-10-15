@@ -19,7 +19,11 @@ const questionnaireResponseSchema = new Schema<IQuestionnaireResponse>(
   {
     eventId: { type: Schema.Types.ObjectId, ref: 'Event', required: true },
     participantId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-    questionnaireVersionId: { type: Schema.Types.ObjectId, ref: 'QuestionnaireVersion', required: true },
+    questionnaireVersionId: {
+      type: Schema.Types.ObjectId,
+      ref: 'QuestionnaireVersion',
+      required: true,
+    },
     answers: [
       {
         questionId: { type: Schema.Types.ObjectId, ref: 'Question' },
@@ -42,7 +46,5 @@ questionnaireResponseSchema.index(
   { unique: true },
 );
 
-export const QuestionnaireResponse: Model<IQuestionnaireResponse> = mongoose.model<IQuestionnaireResponse>(
-  'QuestionnaireResponse',
-  questionnaireResponseSchema,
-);
+export const QuestionnaireResponse: Model<IQuestionnaireResponse> =
+  mongoose.model<IQuestionnaireResponse>('QuestionnaireResponse', questionnaireResponseSchema);

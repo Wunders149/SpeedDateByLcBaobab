@@ -35,11 +35,7 @@ export function LoginPage() {
           <p className="mt-2 text-sm text-gray-600">Sign in to your SpeedDate account</p>
         </div>
 
-        {error && (
-          <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">
-            {error}
-          </div>
-        )}
+        {error && <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

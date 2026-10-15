@@ -9,9 +9,12 @@ export async function logAudit(
   reason?: string,
   metadata?: Record<string, unknown>,
 ): Promise<void> {
+  const actorId = req.user?.userId;
+  if (!actorId) return; // Skip audit log for unauthenticated actions
+
   try {
     await AuditLog.create({
-      actorId: req.user?.userId ?? 'system',
+      actorId,
       eventId: (req.params.eventId as string) ?? undefined,
       action,
       targetType,

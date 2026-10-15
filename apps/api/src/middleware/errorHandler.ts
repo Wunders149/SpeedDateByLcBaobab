@@ -20,6 +20,7 @@ export function errorHandler(
   res: Response,
   _next: NextFunction,
 ): void {
+  void _next;
   console.error('[ERROR]', error);
 
   if (error instanceof AppError) {
@@ -87,7 +88,8 @@ export function errorHandler(
     success: false,
     error: {
       code: 'INTERNAL_ERROR',
-      message: process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : error.message,
+      message:
+        process.env.NODE_ENV === 'production' ? 'An unexpected error occurred' : error.message,
     },
   });
 }

@@ -58,11 +58,26 @@ export function LandingPage() {
         <h2 className="text-center text-3xl font-bold text-gray-900">How It Works</h2>
         <div className="mt-8 grid gap-6 md:grid-cols-3">
           {[
-            { icon: Users, title: 'Register', description: 'Create your profile and tell us about yourself.' },
-            { icon: Sparkles, title: 'Discover', description: 'Our matching algorithm finds compatible people.' },
-            { icon: Heart, title: 'Connect', description: 'Meet at events and form meaningful connections.' },
+            {
+              icon: Users,
+              title: 'Register',
+              description: 'Create your profile and tell us about yourself.',
+            },
+            {
+              icon: Sparkles,
+              title: 'Discover',
+              description: 'Our matching algorithm finds compatible people.',
+            },
+            {
+              icon: Heart,
+              title: 'Connect',
+              description: 'Meet at events and form meaningful connections.',
+            },
           ].map(({ icon: Icon, title, description }) => (
-            <div key={title} className="rounded-2xl border border-rose-100 bg-white p-6 text-center shadow-sm">
+            <div
+              key={title}
+              className="rounded-2xl border border-rose-100 bg-white p-6 text-center shadow-sm"
+            >
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-rose-100">
                 <Icon className="h-6 w-6 text-rose-600" />
               </div>
@@ -83,7 +98,10 @@ export function LandingPage() {
         </div>
         <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {events.slice(0, 3).map((event) => (
-            <div key={event.id} className="rounded-2xl border border-rose-100 bg-white p-6 shadow-sm transition hover:shadow-md">
+            <div
+              key={event.id}
+              className="rounded-2xl border border-rose-100 bg-white p-6 shadow-sm transition hover:shadow-md"
+            >
               <h3 className="text-lg font-semibold text-gray-900">{event.name}</h3>
               <p className="mt-2 text-sm text-gray-600">{event.description}</p>
               <div className="mt-4 space-y-2 text-sm text-gray-500">
@@ -119,14 +137,16 @@ export function LandingPage() {
             <Shield className="h-10 w-10 text-purple-600" />
             <h3 className="mt-4 text-xl font-bold text-gray-900">Privacy First</h3>
             <p className="mt-2 text-gray-600">
-              Your personal information is protected. We never share your contact details without your explicit consent.
+              Your personal information is protected. We never share your contact details without
+              your explicit consent.
             </p>
           </div>
           <div>
             <Heart className="h-10 w-10 text-rose-500" />
             <h3 className="mt-4 text-xl font-bold text-gray-900">Consent-Based Matching</h3>
             <p className="mt-2 text-gray-600">
-              Matches are only revealed when both parties express interest. You control who sees your information.
+              Matches are only revealed when both parties express interest. You control who sees
+              your information.
             </p>
           </div>
         </div>

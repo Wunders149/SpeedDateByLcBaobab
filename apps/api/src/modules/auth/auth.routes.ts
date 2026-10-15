@@ -4,16 +4,19 @@ import { ParticipantProfile } from '../../models/ParticipantProfile.js';
 import { hashPassword, verifyPassword, generateToken } from '../../utils/auth.js';
 import { validate } from '../../middleware/validate.js';
 import { authenticate } from '../../middleware/auth.js';
-import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from '@speed-date/shared';
+import {
+  registerSchema,
+  loginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from '@speed-date/shared';
 import { logAudit } from '../../utils/audit.js';
 import { AppError } from '../../middleware/errorHandler.js';
-import crypto from 'node:crypto';
-
 const router = Router();
 
 // Register
 router.post('/register', validate(registerSchema), async (req: Request, res: Response) => {
-  const { email, password, firstName, lastName, dateOfBirth, phone, genderIdentity, matchingPreference } = req.body;
+  const { email, password, firstName, lastName, dateOfBirth, phone } = req.body;
 
   // Check age (must be 18+)
   const age = (Date.now() - new Date(dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000);
@@ -107,6 +110,9 @@ router.post('/login', validate(loginSchema), async (req: Request, res: Response)
 
   const token = generateToken(user);
 
+  // Set req.user for audit logging
+  req.user = { userId: user._id.toString(), roles: user.roles, email: user.email };
+
   res.cookie('token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -155,42 +161,52 @@ router.get('/me', authenticate, async (req: Request, res: Response) => {
         emailVerifiedAt: user.emailVerifiedAt,
         lastLoginAt: user.lastLoginAt,
       },
-      profile: profile ? {
-        displayName: profile.displayName,
-        publicProfile: profile.publicProfile,
-        privateProfile: profile.privateProfile,
-      } : null,
+      profile: profile
+        ? {
+            displayName: profile.displayName,
+            publicProfile: profile.publicProfile,
+            privateProfile: profile.privateProfile,
+          }
+        : null,
     },
   });
 });
 
 // Forgot password
-router.post('/forgot-password', validate(forgotPasswordSchema), async (req: Request, res: Response) => {
-  const { email } = req.body;
-  const user = await User.findOne({ normalizedEmail: email.toLowerCase() });
+router.post(
+  '/forgot-password',
+  validate(forgotPasswordSchema),
+  async (req: Request, res: Response) => {
+    const { email } = req.body;
+    const user = await User.findOne({ normalizedEmail: email.toLowerCase() });
 
-  // Always return success to prevent email enumeration
-  if (user) {
-    const token = crypto.randomBytes(32).toString('hex');
-    // In production, send email with reset link
-    console.log(`[PASSWORD RESET] Token for ${email}: ${token}`);
-  }
+    // Always return success to prevent email enumeration
+    if (user) {
+      // In production, send email with reset link via a notification service
+      // For development, this is a no-op
+    }
 
-  res.json({
-    success: true,
-    data: { message: 'If an account exists with this email, a password reset link has been sent' },
-  });
-});
+    res.json({
+      success: true,
+      data: {
+        message: 'If an account exists with this email, a password reset link has been sent',
+      },
+    });
+  },
+);
 
 // Reset password
-router.post('/reset-password', validate(resetPasswordSchema), async (req: Request, res: Response) => {
-  const { token, password } = req.body;
-  // In production, verify token from database
-  // For now, this is a placeholder
-  res.json({
-    success: true,
-    data: { message: 'Password has been reset successfully' },
-  });
-});
+router.post(
+  '/reset-password',
+  validate(resetPasswordSchema),
+  async (req: Request, res: Response) => {
+    // In production, verify token from database and update password
+    // For now, this is a placeholder
+    res.json({
+      success: true,
+      data: { message: 'Password has been reset successfully' },
+    });
+  },
+);
 
 export default router;

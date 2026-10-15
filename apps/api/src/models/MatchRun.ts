@@ -27,7 +27,11 @@ const matchRunSchema = new Schema<IMatchRun>(
     eventId: { type: Schema.Types.ObjectId, ref: 'Event', required: true },
     algorithmVersion: { type: String, required: true },
     configurationSnapshot: { type: Schema.Types.Mixed, required: true },
-    questionnaireVersionId: { type: Schema.Types.ObjectId, ref: 'QuestionnaireVersion', required: true },
+    questionnaireVersionId: {
+      type: Schema.Types.ObjectId,
+      ref: 'QuestionnaireVersion',
+      required: true,
+    },
     status: {
       type: String,
       enum: ['pending', 'generated', 'finalized', 'published'],

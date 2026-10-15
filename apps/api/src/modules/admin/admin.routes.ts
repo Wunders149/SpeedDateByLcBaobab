@@ -81,9 +81,7 @@ router.get('/participants', authenticate, requireAdmin, async (req: Request, res
   // Search filter
   if (search) {
     const searchLower = (search as string).toLowerCase();
-    participants = participants.filter(
-      (p) => p.email.toLowerCase().includes(searchLower),
-    );
+    participants = participants.filter((p) => p.email.toLowerCase().includes(searchLower));
   }
 
   const total = await User.countDocuments(query);
@@ -95,17 +93,25 @@ router.get('/participants', authenticate, requireAdmin, async (req: Request, res
   });
 });
 
-router.get('/participants/:participantId', authenticate, requireAdmin, async (req: Request, res: Response) => {
-  const participant = await User.findById(req.params.participantId).select('-passwordHash');
-  if (!participant) throw new AppError('NOT_FOUND', 'Participant not found', 404);
+router.get(
+  '/participants/:participantId',
+  authenticate,
+  requireAdmin,
+  async (req: Request, res: Response) => {
+    const participant = await User.findById(req.params.participantId).select('-passwordHash');
+    if (!participant) throw new AppError('NOT_FOUND', 'Participant not found', 404);
 
-  const registrations = await Registration.find({ participantId: participant._id }).populate('eventId', 'name slug startAt');
+    const registrations = await Registration.find({ participantId: participant._id }).populate(
+      'eventId',
+      'name slug startAt',
+    );
 
-  res.json({
-    success: true,
-    data: { participant, registrations },
-  });
-});
+    res.json({
+      success: true,
+      data: { participant, registrations },
+    });
+  },
+);
 
 // ─── Admin Management ────────────────────────────────────────────────────────
 
@@ -117,54 +123,66 @@ router.get('/admins', authenticate, requireAdmin, async (_req: Request, res: Res
   res.json({ success: true, data: { admins } });
 });
 
-router.post('/admins', authenticate, requireAdmin, validate(createAdminSchema), async (req: Request, res: Response) => {
-  const { email, firstName, lastName, role, eventIds } = req.body;
+router.post(
+  '/admins',
+  authenticate,
+  requireAdmin,
+  validate(createAdminSchema),
+  async (req: Request, res: Response) => {
+    const { email, role } = req.body;
 
-  const existing = await User.findOne({ normalizedEmail: email.toLowerCase() });
-  if (existing) throw new AppError('EMAIL_EXISTS', 'A user with this email already exists', 409);
+    const existing = await User.findOne({ normalizedEmail: email.toLowerCase() });
+    if (existing) throw new AppError('EMAIL_EXISTS', 'A user with this email already exists', 409);
 
-  const tempPassword = Math.random().toString(36).slice(-12);
-  const passwordHash = await hashPassword(tempPassword);
+    const tempPassword = Math.random().toString(36).slice(-12);
+    const passwordHash = await hashPassword(tempPassword);
 
-  const admin = await User.create({
-    email,
-    normalizedEmail: email.toLowerCase(),
-    passwordHash,
-    roles: [role],
-    accountStatus: 'active',
-  });
+    const admin = await User.create({
+      email,
+      normalizedEmail: email.toLowerCase(),
+      passwordHash,
+      roles: [role],
+      accountStatus: 'active',
+    });
 
-  await logAudit(req, 'admin.created', 'user', admin._id.toString(), undefined, { role, email });
+    await logAudit(req, 'admin.created', 'user', admin._id.toString(), undefined, { role, email });
 
-  res.status(201).json({
-    success: true,
-    data: {
-      admin: {
-        id: admin._id,
-        email: admin.email,
-        roles: admin.roles,
+    res.status(201).json({
+      success: true,
+      data: {
+        admin: {
+          id: admin._id,
+          email: admin.email,
+          roles: admin.roles,
+        },
+        tempPassword, // In production, send via email
       },
-      tempPassword, // In production, send via email
-    },
-  });
-});
+    });
+  },
+);
 
-router.patch('/admins/:adminId', authenticate, requireAdmin, validate(updateAdminSchema), async (req: Request, res: Response) => {
-  const admin = await User.findById(req.params.adminId);
-  if (!admin) throw new AppError('NOT_FOUND', 'Admin not found', 404);
+router.patch(
+  '/admins/:adminId',
+  authenticate,
+  requireAdmin,
+  validate(updateAdminSchema),
+  async (req: Request, res: Response) => {
+    const admin = await User.findById(req.params.adminId);
+    if (!admin) throw new AppError('NOT_FOUND', 'Admin not found', 404);
 
-  // Prevent self-demotion
-  if (admin._id.toString() === req.user!.userId && req.body.role) {
-    throw new AppError('SELF_MODIFICATION', 'Cannot change your own role', 400);
-  }
+    // Prevent self-demotion
+    if (admin._id.toString() === req.user!.userId && req.body.role) {
+      throw new AppError('SELF_MODIFICATION', 'Cannot change your own role', 400);
+    }
 
-  Object.assign(admin, req.body);
-  await admin.save();
+    Object.assign(admin, req.body);
+    await admin.save();
 
-  await logAudit(req, 'admin.updated', 'user', admin._id.toString());
+    await logAudit(req, 'admin.updated', 'user', admin._id.toString());
 
-  res.json({ success: true, data: { admin } });
-});
+    res.json({ success: true, data: { admin } });
+  },
+);
 
 // ─── Audit Logs ──────────────────────────────────────────────────────────────
 
@@ -193,107 +211,132 @@ router.get('/audit-logs', authenticate, requireAdmin, async (req: Request, res: 
 
 // ─── Notifications ───────────────────────────────────────────────────────────
 
-router.post('/notifications', authenticate, requireAdmin, validate(createNotificationSchema), async (req: Request, res: Response) => {
-  const notification = await Notification.create(req.body);
-  await logAudit(req, 'notification.sent', 'notification', notification._id.toString());
-  res.status(201).json({ success: true, data: { notification } });
-});
+router.post(
+  '/notifications',
+  authenticate,
+  requireAdmin,
+  validate(createNotificationSchema),
+  async (req: Request, res: Response) => {
+    const notification = await Notification.create(req.body);
+    await logAudit(req, 'notification.sent', 'notification', notification._id.toString());
+    res.status(201).json({ success: true, data: { notification } });
+  },
+);
 
 // ─── Analytics ───────────────────────────────────────────────────────────────
 
-router.get('/events/:eventId/analytics', authenticate, requireAdmin, async (req: Request, res: Response) => {
-  const { eventId } = req.params;
+router.get(
+  '/events/:eventId/analytics',
+  authenticate,
+  requireAdmin,
+  async (req: Request, res: Response) => {
+    const { eventId } = req.params;
 
-  const event = await Event.findById(eventId);
-  if (!event) throw new AppError('NOT_FOUND', 'Event not found', 404);
+    const event = await Event.findById(eventId);
+    if (!event) throw new AppError('NOT_FOUND', 'Event not found', 404);
 
-  const [
-    totalRegistrations,
-    approvedCount,
-    waitlistedCount,
-    checkedInCount,
-    questionnaireSubmittedCount,
-  ] = await Promise.all([
-    Registration.countDocuments({ eventId }),
-    Registration.countDocuments({ eventId, registrationStatus: 'approved' }),
-    Registration.countDocuments({ eventId, registrationStatus: 'waitlisted' }),
-    Registration.countDocuments({ eventId, checkInStatus: 'checked_in' }),
-    Registration.countDocuments({ eventId, questionnaireStatus: 'submitted' }),
-  ]);
+    const [
+      totalRegistrations,
+      approvedCount,
+      waitlistedCount,
+      checkedInCount,
+      questionnaireSubmittedCount,
+    ] = await Promise.all([
+      Registration.countDocuments({ eventId }),
+      Registration.countDocuments({ eventId, registrationStatus: 'approved' }),
+      Registration.countDocuments({ eventId, registrationStatus: 'waitlisted' }),
+      Registration.countDocuments({ eventId, checkInStatus: 'checked_in' }),
+      Registration.countDocuments({ eventId, questionnaireStatus: 'submitted' }),
+    ]);
 
-  res.json({
-    success: true,
-    data: {
-      event: {
-        id: event._id,
-        name: event.name,
-        capacity: event.capacity,
+    res.json({
+      success: true,
+      data: {
+        event: {
+          id: event._id,
+          name: event.name,
+          capacity: event.capacity,
+        },
+        registrations: {
+          total: totalRegistrations,
+          approved: approvedCount,
+          waitlisted: waitlistedCount,
+          checkedIn: checkedInCount,
+          questionnaireSubmitted: questionnaireSubmittedCount,
+        },
+        rates: {
+          approvalRate: totalRegistrations > 0 ? approvedCount / totalRegistrations : 0,
+          checkInRate: approvedCount > 0 ? checkedInCount / approvedCount : 0,
+          questionnaireCompletionRate:
+            approvedCount > 0 ? questionnaireSubmittedCount / approvedCount : 0,
+        },
       },
-      registrations: {
-        total: totalRegistrations,
-        approved: approvedCount,
-        waitlisted: waitlistedCount,
-        checkedIn: checkedInCount,
-        questionnaireSubmitted: questionnaireSubmittedCount,
-      },
-      rates: {
-        approvalRate: totalRegistrations > 0 ? approvedCount / totalRegistrations : 0,
-        checkInRate: approvedCount > 0 ? checkedInCount / approvedCount : 0,
-        questionnaireCompletionRate: approvedCount > 0 ? questionnaireSubmittedCount / approvedCount : 0,
-      },
-    },
-  });
-});
+    });
+  },
+);
 
 // ─── Reports ─────────────────────────────────────────────────────────────────
 
-router.get('/events/:eventId/reports', authenticate, requireAdmin, async (req: Request, res: Response) => {
-  const { eventId } = req.params;
+router.get(
+  '/events/:eventId/reports',
+  authenticate,
+  requireAdmin,
+  async (req: Request, res: Response) => {
+    const { eventId } = req.params;
 
-  const event = await Event.findById(eventId);
-  if (!event) throw new AppError('NOT_FOUND', 'Event not found', 404);
+    const event = await Event.findById(eventId);
+    if (!event) throw new AppError('NOT_FOUND', 'Event not found', 404);
 
-  const registrations = await Registration.find({ eventId }).populate('participantId', 'email');
+    const registrations = await Registration.find({ eventId }).populate('participantId', 'email');
 
-  res.json({
-    success: true,
-    data: {
-      event: {
-        id: event._id,
-        name: event.name,
-        startAt: event.startAt,
-        capacity: event.capacity,
+    res.json({
+      success: true,
+      data: {
+        event: {
+          id: event._id,
+          name: event.name,
+          startAt: event.startAt,
+          capacity: event.capacity,
+        },
+        registrations: registrations.map((r) => ({
+          id: r._id,
+          participantId: r.participantId,
+          status: r.registrationStatus,
+          registeredAt: r.registeredAt,
+          approvedAt: r.approvedAt,
+          checkedInAt: r.checkedInAt,
+        })),
       },
-      registrations: registrations.map((r) => ({
-        id: r._id,
-        participantId: r.participantId,
-        status: r.registrationStatus,
-        registeredAt: r.registeredAt,
-        approvedAt: r.approvedAt,
-        checkedInAt: r.checkedInAt,
-      })),
-    },
-  });
-});
+    });
+  },
+);
 
 // ─── Export ──────────────────────────────────────────────────────────────────
 
-router.get('/events/:eventId/exports/participants', authenticate, requireAdmin, async (req: Request, res: Response) => {
-  const { eventId } = req.params;
+router.get(
+  '/events/:eventId/exports/participants',
+  authenticate,
+  requireAdmin,
+  async (req: Request, res: Response) => {
+    const { eventId } = req.params;
 
-  const registrations = await Registration.find({ eventId: eventId as string, registrationStatus: { $in: ['approved', 'checked_in'] } })
-    .populate('participantId', 'email');
+    const registrations = await Registration.find({
+      eventId: eventId as string,
+      registrationStatus: { $in: ['approved', 'checked_in'] },
+    }).populate('participantId', 'email');
 
-  const csv = [
-    'Email,Status,Registered At,Approved At,Checked In At',
-    ...registrations.map((r) =>
-      `${(r.participantId as unknown as { email: string }).email},${r.registrationStatus},${r.registeredAt},${r.approvedAt ?? ''},${r.checkedInAt ?? ''}`
-    ),
-  ].join('\n');
+    const csv = [
+      'Email,Status,Registered At,Approved At,Checked In At',
+      ...registrations.map(
+        (r) =>
+          `${(r.participantId as unknown as { email: string }).email},${r.registrationStatus},${r.registeredAt},${r.approvedAt ?? ''},${r.checkedInAt ?? ''}`,
+      ),
+    ].join('\n');
 
-  res.setHeader('Content-Type', 'text/csv');
-  res.setHeader('Content-Disposition', `attachment; filename="participants-${eventId}.csv"`);
-  res.send(csv);
-});
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="participants-${eventId}.csv"`);
+    res.send(csv);
+  },
+);
 
 export default router;
