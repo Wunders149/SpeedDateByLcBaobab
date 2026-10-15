@@ -72,7 +72,7 @@ router.post('/register', validate(registerSchema), async (req: Request, res: Res
   res.cookie('token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    sameSite: (process.env.COOKIE_SAME_SITE ?? (process.env.NODE_ENV === 'production' ? 'none' : 'strict')) as 'lax' | 'strict' | 'none',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 
