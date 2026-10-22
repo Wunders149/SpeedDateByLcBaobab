@@ -160,6 +160,7 @@ export function AdminPage() {
           {[
             { to: '/admin/check-in', title: 'Check-In', detail: 'Manage event attendance', icon: QrCode },
             { to: '/admin/questionnaire-builder', title: 'Questionnaires', detail: 'Build and publish forms', icon: ClipboardList },
+            { to: '/admin/questions', title: 'Question bank', detail: 'Create and manage questions', icon: ClipboardList },
             { to: '/admin/matches/review', title: 'Review Matches', detail: 'Finalize generated results', icon: ClipboardCheck },
             { to: '/admin/results', title: 'Publish Results', detail: 'Release results to participants', icon: Heart },
             { to: '/admin/sessions', title: 'Session Rotations', detail: 'Schedule speed-date rounds', icon: Timer },

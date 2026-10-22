@@ -1,7 +1,7 @@
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useLanguage, type Language } from '../contexts/LanguageContext';
-import { Heart, LogOut, User, Menu, X, LayoutDashboard, CalendarDays, ClipboardCheck, QrCode, HeartHandshake, Timer, BarChart3, Bell } from 'lucide-react';
+import { Heart, LogOut, User, Menu, X, LayoutDashboard, CalendarDays, ClipboardCheck, QrCode, HeartHandshake, Timer, BarChart3, Bell, ListChecks } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const adminLinks = [
@@ -13,6 +13,7 @@ const adminLinks = [
   { to: '/admin/sessions', label: 'Sessions', icon: Timer },
   { to: '/admin/reports', label: 'Reports', icon: BarChart3 },
   { to: '/admin/notifications', label: 'Announcements', icon: Bell },
+  { to: '/admin/questions', label: 'Question bank', icon: ListChecks },
 ];
 
 export function Layout() {
