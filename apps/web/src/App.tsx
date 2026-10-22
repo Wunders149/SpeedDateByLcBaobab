@@ -247,6 +247,7 @@ function AppRoutes() {
         />
         <Route path="/admin/events" element={<AdminRoute><AdminEventsPage /></AdminRoute>} />
         <Route path="/admin/events/new" element={<AdminRoute><AdminEventCreatePage /></AdminRoute>} />
+        <Route path="/admin/events/:eventId/edit" element={<AdminRoute><AdminEventCreatePage /></AdminRoute>} />
         <Route path="/admin/participants" element={<AdminRoute><AdminParticipantsPage /></AdminRoute>} />
         <Route path="/admin/registrations" element={<AdminRoute><AdminRegistrationsPage /></AdminRoute>} />
         <Route path="/admin/check-in" element={<AdminRoute><AdminCheckInPage /></AdminRoute>} />

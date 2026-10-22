@@ -1,97 +1,70 @@
 import { useState } from 'react';
-import { Search, CheckCircle, QrCode, Users } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { api } from '../../lib/api';
+import { Search, CheckCircle, Users } from 'lucide-react';
 
-interface CheckInParticipant {
-  id: string;
-  name: string;
-  code: string;
-  status: 'approved' | 'checked_in' | 'not_registered';
+interface HostEvent { _id: string; name: string }
+interface Attendee {
+  _id: string;
+  participantId: { _id: string; email: string };
+  registrationStatus: string;
+  checkInStatus: string;
 }
 
-const mockParticipants: CheckInParticipant[] = [
-  { id: '1', name: 'Emma Johnson', code: 'SD-ABC123', status: 'approved' },
-  { id: '2', name: 'Marcus Hale', code: 'SD-DEF456', status: 'checked_in' },
-  { id: '3', name: 'Sofia Garcia', code: 'SD-GHI789', status: 'approved' },
-];
-
 export function AdminCheckInPage() {
+  const [eventId, setEventId] = useState('');
   const [search, setSearch] = useState('');
-  const [participants, setParticipants] = useState(mockParticipants);
-
-  const filtered = participants.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.code.toLowerCase().includes(search.toLowerCase())
+  const queryClient = useQueryClient();
+  const { data: eventData } = useQuery({
+    queryKey: ['admin-events'],
+    queryFn: () => api<{ data: { events: HostEvent[] } }>('/api/v1/admin/events'),
+  });
+  const events = eventData?.data.events ?? [];
+  const selectedEventId = eventId || events[0]?._id || '';
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ['admin-registrations', selectedEventId, 'all'],
+    enabled: !!selectedEventId,
+    queryFn: () => api<{ data: { registrations: Attendee[] } }>(`/api/v1/admin/events/${selectedEventId}/registrations?limit=100`),
+  });
+  const checkInMutation = useMutation({
+    mutationFn: (participantId: string) => api(`/api/v1/admin/events/${selectedEventId}/check-in`, {
+      method: 'POST', body: JSON.stringify({ participantId }),
+    }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-registrations', selectedEventId] }),
+  });
+  const attendees = (data?.data.registrations ?? []).filter((attendee) =>
+    ['approved', 'checked_in'].includes(attendee.registrationStatus),
   );
-
-  const checkIn = (id: string) => {
-    setParticipants((prev) =>
-      prev.map((p) => p.id === id ? { ...p, status: 'checked_in' } : p)
-    );
-  };
-
-  const checkedInCount = participants.filter((p) => p.status === 'checked_in').length;
+  const filtered = attendees.filter((attendee) => attendee.participantId?.email.toLowerCase().includes(search.toLowerCase()));
+  const checkedInCount = attendees.filter((attendee) => attendee.registrationStatus === 'checked_in').length;
+  const pendingCount = attendees.filter((attendee) => attendee.registrationStatus === 'approved').length;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Check-In</h1>
-        <div className="flex gap-4 text-sm">
-          <span className="text-green-600 font-medium">{checkedInCount} checked in</span>
-          <span className="text-gray-500">{participants.filter((p) => p.status === 'approved').length} pending</span>
-        </div>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div><h1 className="text-3xl font-bold text-gray-900">Check-In</h1><p className="mt-1 text-sm text-gray-500">Check in approved event participants.</p></div>
+        <div className="flex items-center gap-4 text-sm"><span className="font-medium text-green-600">{checkedInCount} checked in</span><span className="text-gray-500">{pendingCount} waiting</span></div>
       </div>
-
-      {/* Scan QR Code */}
-      <div className="rounded-2xl border border-rose-100 bg-white p-8 shadow-sm text-center">
-        <QrCode className="mx-auto h-24 w-24 text-gray-300" />
-        <p className="mt-4 text-gray-600">Scan participant QR code or search manually</p>
-      </div>
-
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search by name or participant code..."
-          className="w-full rounded-lg border border-gray-300 py-2 pl-10 focus:border-rose-500 focus:outline-none"
-        />
-      </div>
-
-      {/* Participants */}
-      <div className="space-y-3">
-        {filtered.map((p) => (
-          <div key={p.id} className="flex items-center justify-between rounded-xl border border-rose-100 bg-white p-4 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-full ${p.status === 'checked_in' ? 'bg-green-100' : 'bg-gray-100'}`}>
-                {p.status === 'checked_in' ? (
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                ) : (
-                  <Users className="h-5 w-5 text-gray-400" />
-                )}
-              </div>
-              <div>
-                <p className="font-medium text-gray-900">{p.name}</p>
-                <p className="text-xs text-gray-500">{p.code}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className={`rounded-full px-2 py-1 text-xs font-medium ${p.status === 'checked_in' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                {p.status === 'checked_in' ? 'Checked In' : 'Approved'}
-              </span>
-              {p.status === 'approved' && (
-                <button
-                  onClick={() => checkIn(p.id)}
-                  className="rounded-lg bg-rose-500 px-3 py-1 text-xs font-semibold text-white hover:bg-rose-600"
-                >
-                  Check In
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+      <label className="block text-sm font-medium text-gray-700">Event
+        <select value={selectedEventId} onChange={(e) => setEventId(e.target.value)} className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2">
+          {events.map((event) => <option key={event._id} value={event._id}>{event.name}</option>)}
+        </select>
+      </label>
+      <div className="relative"><Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" /><input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by participant email" className="w-full rounded-lg border border-gray-300 py-2 pl-10 focus:border-rose-500 focus:outline-none" /></div>
+      {isLoading && <p className="py-8 text-center text-gray-500">Loading attendees…</p>}
+      {isError && <p role="alert" className="text-sm text-red-600">{(error as Error).message}</p>}
+      {checkInMutation.isError && <p role="alert" className="text-sm text-red-600">{(checkInMutation.error as Error).message}</p>}
+      {!isLoading && !isError && <div className="space-y-3">
+        {filtered.map((attendee) => {
+          const checkedIn = attendee.registrationStatus === 'checked_in';
+          return <div key={attendee._id} className="flex items-center justify-between rounded-xl border border-rose-100 bg-white p-4 shadow-sm">
+            <div className="flex items-center gap-3"><div className={`flex h-10 w-10 items-center justify-center rounded-full ${checkedIn ? 'bg-green-100' : 'bg-gray-100'}`}>{checkedIn ? <CheckCircle className="h-5 w-5 text-green-600" /> : <Users className="h-5 w-5 text-gray-400" />}</div><p className="font-medium text-gray-900">{attendee.participantId?.email}</p></div>
+            <div className="flex items-center gap-2"><span className={`rounded-full px-2 py-1 text-xs font-medium ${checkedIn ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>{checkedIn ? 'Checked in' : 'Approved'}</span>{!checkedIn && <button disabled={checkInMutation.isPending} onClick={() => checkInMutation.mutate(attendee.participantId._id)} className="rounded-lg bg-rose-500 px-3 py-1 text-xs font-semibold text-white disabled:opacity-50">Check in</button>}</div>
+          </div>;
+        })}
+        {filtered.length === 0 && <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-500">No approved attendees match this search.</div>}
+      </div>}
+      {!events.length && <p className="text-center text-gray-500">Create an event before checking in attendees.</p>}
     </div>
   );
 }

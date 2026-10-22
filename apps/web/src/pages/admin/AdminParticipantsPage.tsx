@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { Search, Eye } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface Participant {
   _id: string;
@@ -17,15 +18,11 @@ export function AdminParticipantsPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-participants', search, statusFilter],
-    queryFn: () => api('/api/v1/admin/participants') as unknown as { data: { participants: Participant[] } },
+    queryFn: () => api<{ data: { participants: Participant[] } }>(`/api/v1/admin/participants?limit=100${search ? `&search=${encodeURIComponent(search)}` : ''}${statusFilter === 'all' ? '' : `&status=${statusFilter}`}`),
   });
 
   const participants = data?.data.participants ?? [];
-  const filtered = participants.filter((p) => {
-    const matchesSearch = search === '' || p.email.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || p.accountStatus === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const filtered = participants;
 
   const statusColor = (status: string) => {
     switch (status) {
@@ -92,9 +89,9 @@ export function AdminParticipantsPage() {
                   </td>
                   <td className="px-4 py-3 text-gray-500">{new Date(p.createdAt).toLocaleDateString()}</td>
                   <td className="px-4 py-3 text-right">
-                    <button className="rounded-lg border border-gray-200 p-1 text-gray-600 hover:bg-gray-50">
+                    <Link to={`/admin/participants/detail?id=${p._id}`} aria-label={`View ${p.email}`} className="rounded-lg border border-gray-200 p-1 text-gray-600 hover:bg-gray-50">
                       <Eye className="h-4 w-4" />
-                    </button>
+                    </Link>
                   </td>
                 </tr>
               ))}

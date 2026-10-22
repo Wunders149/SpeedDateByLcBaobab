@@ -1,105 +1,44 @@
 import { useState } from 'react';
-import { Heart, CheckCircle, XCircle, ArrowRight, TrendingUp } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Heart, CheckCircle, ArrowRight, TrendingUp, ShieldCheck } from 'lucide-react';
+import { api } from '../../lib/api';
 
-interface Match {
-  id: string;
-  participantA: string;
-  participantB: string;
-  score: number;
-  status: 'provisional' | 'finalized' | 'rejected';
-  dealBreakers: number;
+interface HostEvent { _id: string; name: string }
+interface ReviewedMatch {
+  _id: string; participantAId: { email: string }; participantBId: { email: string };
+  mutualCompatibilityScore: number; matchStatus: string; eligibilityMetadata: { eligible: boolean; exclusionReasons: string[] };
 }
 
-const mockMatches: Match[] = [
-  { id: '1', participantA: 'Emma J.', participantB: 'Marcus H.', score: 87.5, status: 'provisional', dealBreakers: 0 },
-  { id: '2', participantA: 'Priya S.', participantB: 'Dylan B.', score: 72.3, status: 'provisional', dealBreakers: 0 },
-  { id: '3', participantA: 'Sofia G.', participantB: 'Carlos M.', score: 91.0, status: 'finalized', dealBreakers: 0 },
-  { id: '4', participantA: 'Lily K.', participantB: 'Noah W.', score: 64.8, status: 'provisional', dealBreakers: 1 },
-];
-
 export function AdminMatchReviewPage() {
-  const [matches, setMatches] = useState(mockMatches);
-  const [filter, setFilter] = useState<'all' | 'provisional' | 'finalized'>('all');
-
-  const finalize = (id: string) => {
-    setMatches((prev) => prev.map((m) => m.id === id ? { ...m, status: 'finalized' } : m));
-  };
-  const reject = (id: string) => {
-    setMatches((prev) => prev.map((m) => m.id === id ? { ...m, status: 'rejected' } : m));
-  };
-
-  const filtered = filter === 'all' ? matches : matches.filter((m) => m.status === filter);
+  const [eventId, setEventId] = useState('');
+  const [filter, setFilter] = useState('all');
+  const queryClient = useQueryClient();
+  const { data: eventData } = useQuery({ queryKey: ['admin-events'], queryFn: () => api<{ data: { events: HostEvent[] } }>('/api/v1/admin/events') });
+  const events = eventData?.data.events ?? [];
+  const selectedEventId = eventId || events[0]?._id || '';
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ['admin-matches', selectedEventId], enabled: !!selectedEventId,
+    queryFn: () => api<{ data: { matches: ReviewedMatch[] } }>(`/api/v1/admin/events/${selectedEventId}/matches`),
+  });
+  const mutation = useMutation({
+    mutationFn: () => api(`/api/v1/admin/events/${selectedEventId}/matches/finalize`, { method: 'POST' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-matches', selectedEventId] });
+      queryClient.invalidateQueries({ queryKey: ['match-runs', selectedEventId] });
+    },
+  });
+  const matches = data?.data.matches ?? [];
+  const filtered = filter === 'all' ? matches : matches.filter((match) => match.matchStatus === filter);
+  const provisionalCount = matches.filter((match) => match.matchStatus === 'provisional').length;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Match Review & Finalization</h1>
-        <div className="flex gap-2">
-          <button className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">
-            Approve All Provisional
-          </button>
-          <button className="rounded-lg bg-rose-500 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-600">
-            Finalize All
-          </button>
-        </div>
-      </div>
-
-      <div className="flex gap-2">
-        {(['all', 'provisional', 'finalized'] as const).map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`rounded-full px-4 py-2 text-sm font-medium ${filter === f ? 'bg-rose-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-          >
-            {f}
-          </button>
-        ))}
-      </div>
-
-      <div className="space-y-3">
-        {filtered.map((m) => (
-          <div key={m.id} className="rounded-xl border border-rose-100 bg-white p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Heart className={`h-5 w-5 ${m.status === 'finalized' ? 'text-rose-500 fill-rose-500' : 'text-gray-400'}`} />
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-900">{m.participantA}</span>
-                  <ArrowRight className="h-4 w-4 text-gray-400" />
-                  <span className="font-medium text-gray-900">{m.participantB}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="text-right">
-                  <div className="flex items-center gap-1">
-                    <TrendingUp className="h-4 w-4 text-green-500" />
-                    <span className="text-lg font-bold text-gray-900">{m.score}%</span>
-                  </div>
-                  {m.dealBreakers > 0 && (
-                    <span className="text-xs text-red-500">{m.dealBreakers} deal-breaker(s)</span>
-                  )}
-                </div>
-                <span className={`rounded-full px-2 py-1 text-xs font-medium ${
-                  m.status === 'finalized' ? 'bg-green-100 text-green-700' :
-                  m.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                  'bg-yellow-100 text-yellow-700'
-                }`}>
-                  {m.status}
-                </span>
-                {m.status === 'provisional' && (
-                  <div className="flex gap-2">
-                    <button onClick={() => finalize(m.id)} className="rounded-lg bg-green-500 px-3 py-1 text-xs font-semibold text-white hover:bg-green-600">
-                      <CheckCircle className="h-3 w-3 inline mr-1" /> Finalize
-                    </button>
-                    <button onClick={() => reject(m.id)} className="rounded-lg bg-red-500 px-3 py-1 text-xs font-semibold text-white hover:bg-red-600">
-                      <XCircle className="h-3 w-3 inline mr-1" /> Reject
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <div className="flex flex-wrap items-end justify-between gap-4"><div><h1 className="text-3xl font-bold text-gray-900">Match Review & Finalization</h1><p className="mt-1 text-sm text-gray-500">Review generated pairs and finalize the current match run.</p></div><div className="flex flex-wrap items-end gap-3"><label className="text-sm font-medium text-gray-700">Event<select value={selectedEventId} onChange={(e) => setEventId(e.target.value)} className="mt-1 block min-w-56 rounded-lg border border-gray-300 px-4 py-2">{events.map((event) => <option key={event._id} value={event._id}>{event.name}</option>)}</select></label><button onClick={() => mutation.mutate()} disabled={!selectedEventId || !provisionalCount || mutation.isPending} className="rounded-lg bg-rose-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"><ShieldCheck className="mr-1 inline h-4 w-4" />{mutation.isPending ? 'Finalizing…' : `Finalize ${provisionalCount} provisional`}</button></div></div>
+      {mutation.isError && <p role="alert" className="text-sm text-red-600">{(mutation.error as Error).message}</p>}{isError && <p role="alert" className="text-sm text-red-600">{(error as Error).message}</p>}{isLoading && <p className="py-8 text-center text-gray-500">Loading matches…</p>}
+      <div className="flex flex-wrap gap-2">{['all', 'provisional', 'finalized', 'published'].map((value) => <button key={value} onClick={() => setFilter(value)} className={`rounded-full px-4 py-2 text-sm font-medium ${filter === value ? 'bg-rose-500 text-white' : 'bg-gray-100 text-gray-600'}`}>{value}</button>)}</div>
+      <div className="space-y-3">{filtered.map((match) => <div key={match._id} className="rounded-xl border border-rose-100 bg-white p-4 shadow-sm"><div className="flex flex-wrap items-center justify-between gap-3"><div className="flex items-center gap-3"><Heart className={`h-5 w-5 ${match.matchStatus === 'finalized' || match.matchStatus === 'published' ? 'fill-rose-500 text-rose-500' : 'text-gray-400'}`} /><div className="flex flex-wrap items-center gap-2"><span className="font-medium text-gray-900">{match.participantAId?.email}</span><ArrowRight className="h-4 w-4 text-gray-400" /><span className="font-medium text-gray-900">{match.participantBId?.email}</span></div></div><div className="flex items-center gap-4"><span className="inline-flex items-center gap-1 text-lg font-bold text-gray-900"><TrendingUp className="h-4 w-4 text-green-500" />{match.mutualCompatibilityScore.toFixed(1)}%</span><span className={`rounded-full px-2 py-1 text-xs ${match.matchStatus === 'published' ? 'bg-purple-100 text-purple-700' : match.matchStatus === 'finalized' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{match.matchStatus}</span>{match.eligibilityMetadata?.eligible && <CheckCircle className="h-4 w-4 text-green-500" aria-label="Eligible" />}</div></div>{match.eligibilityMetadata?.exclusionReasons?.length > 0 && <p className="mt-2 text-sm text-amber-700">Review: {match.eligibilityMetadata.exclusionReasons.join(', ')}</p>}</div>)}</div>
+      {!isLoading && selectedEventId && !filtered.length && <p className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-500">No {filter === 'all' ? '' : `${filter} `}matches for this event.</p>}
+      {!events.length && <p className="text-center text-gray-500">Create an event and generate matches before review.</p>}
     </div>
   );
 }

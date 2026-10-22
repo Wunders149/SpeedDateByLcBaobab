@@ -188,7 +188,12 @@ router.get(
     const { eventId } = req.params;
     const { status, page = '1', limit = '50' } = req.query;
 
-    const query: Record<string, unknown> = { eventId };
+    const latestRun = await MatchRun.findOne({ eventId }).sort({ createdAt: -1 });
+    if (!latestRun) {
+      res.json({ success: true, data: { matches: [] }, meta: { page: 1, limit: 50, total: 0 } });
+      return;
+    }
+    const query: Record<string, unknown> = { eventId, matchRunId: latestRun._id };
     if (status) query.matchStatus = status;
 
     const pageNum = Math.max(1, parseInt(page as string, 10));

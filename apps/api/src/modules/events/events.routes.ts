@@ -88,6 +88,12 @@ router.post(
   requireAdmin,
   validate(createEventSchema),
   async (req: Request, res: Response) => {
+    const startAt = new Date(req.body.startAt);
+    const endAt = new Date(req.body.endAt);
+    const deadline = new Date(req.body.registrationDeadline);
+    if (!(startAt < endAt) || deadline > startAt) {
+      throw new AppError('INVALID_DATES', 'The event must end after it starts, and registration must close by the start time', 400);
+    }
     const event = await Event.create({
       ...req.body,
       createdBy: req.user!.userId,
@@ -120,6 +126,13 @@ router.patch(
     // Prevent editing finalized events
     if (event.status === 'completed' || event.status === 'archived') {
       throw new AppError('INVALID_STATE', 'Cannot modify a completed or archived event', 400);
+    }
+
+    const nextStart = req.body.startAt ? new Date(req.body.startAt) : event.startAt;
+    const nextEnd = req.body.endAt ? new Date(req.body.endAt) : event.endAt;
+    const nextDeadline = req.body.registrationDeadline ? new Date(req.body.registrationDeadline) : event.registrationDeadline;
+    if (!(nextStart < nextEnd) || nextDeadline > nextStart) {
+      throw new AppError('INVALID_DATES', 'The event must end after it starts, and registration must close by the start time', 400);
     }
 
     Object.assign(event, req.body);
@@ -203,6 +216,10 @@ router.post(
       throw new AppError('NOT_FOUND', 'Event not found', 404);
     }
 
+    if (event.status !== 'registration_open') {
+      throw new AppError('INVALID_STATE', 'Only an event with open registration can be closed', 400);
+    }
+
     event.status = 'registration_closed';
     await event.save();
 
@@ -214,6 +231,28 @@ router.post(
     });
   },
 );
+
+router.post('/:eventId/start', authenticate, requireAdmin, async (req: Request, res: Response) => {
+  const event = await Event.findById(req.params.eventId);
+  if (!event) throw new AppError('NOT_FOUND', 'Event not found', 404);
+  if (!['registration_open', 'registration_closed'].includes(event.status)) {
+    throw new AppError('INVALID_STATE', 'Close registration before starting the event', 400);
+  }
+  event.status = 'in_progress';
+  await event.save();
+  await logAudit(req, 'event.started', 'event', event._id.toString());
+  res.json({ success: true, data: { event } });
+});
+
+router.post('/:eventId/complete', authenticate, requireAdmin, async (req: Request, res: Response) => {
+  const event = await Event.findById(req.params.eventId);
+  if (!event) throw new AppError('NOT_FOUND', 'Event not found', 404);
+  if (event.status !== 'in_progress') throw new AppError('INVALID_STATE', 'Only an in-progress event can be completed', 400);
+  event.status = 'completed';
+  await event.save();
+  await logAudit(req, 'event.completed', 'event', event._id.toString());
+  res.json({ success: true, data: { event } });
+});
 
 // Admin: Archive event
 router.post(

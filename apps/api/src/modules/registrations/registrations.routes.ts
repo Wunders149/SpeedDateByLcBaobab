@@ -12,7 +12,7 @@ const router = Router();
 
 // Participant: Register for event
 router.post(
-  '/:eventId/registrations',
+  '/events/:eventId/registrations',
   authenticate,
   validate(createRegistrationSchema),
   async (req: Request, res: Response) => {
@@ -86,7 +86,7 @@ router.post(
 );
 
 // Participant: Get my registration
-router.get('/:eventId/my-registration', authenticate, async (req: Request, res: Response) => {
+router.get('/events/:eventId/my-registration', authenticate, async (req: Request, res: Response) => {
   const { eventId } = req.params;
   const userId = req.user!.userId;
 
@@ -105,7 +105,7 @@ router.get('/:eventId/my-registration', authenticate, async (req: Request, res: 
 });
 
 // Participant: Withdraw registration
-router.post('/:eventId/withdraw', authenticate, async (req: Request, res: Response) => {
+router.post('/events/:eventId/withdraw', authenticate, async (req: Request, res: Response) => {
   const { eventId } = req.params;
   const userId = req.user!.userId;
 

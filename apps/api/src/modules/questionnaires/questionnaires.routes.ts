@@ -11,12 +11,20 @@ import {
   submitQuestionnaireSchema,
   createQuestionSchema,
   updateQuestionSchema,
+  categoryWeightsSchema,
 } from '@speed-date/shared';
 import { logAudit } from '../../utils/audit.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { calculateCompletion } from '@speed-date/shared';
 
 const router = Router();
+
+router.get('/admin/events/:eventId/questionnaires', authenticate, requireAdmin, async (req: Request, res: Response) => {
+  const event = await Event.findById(req.params.eventId);
+  if (!event) throw new AppError('NOT_FOUND', 'Event not found', 404);
+  const versions = await QuestionnaireVersion.find({ eventId: event._id }).sort({ version: -1 }).lean();
+  res.json({ success: true, data: { versions, currentQuestionnaireId: event.questionnaireVersionId?.toString() ?? null } });
+});
 
 // ─── Public Question Bank (Admin) ────────────────────────────────────────────
 
@@ -66,6 +74,16 @@ router.post(
     const { eventId } = req.params;
     const { questionIds, categoryWeights, completionThreshold } = req.body;
 
+    if (!Array.isArray(questionIds) || !questionIds.length || questionIds.length > 200) {
+      throw new AppError('INVALID_QUESTIONS', 'Select between 1 and 200 questions', 400);
+    }
+    const weightsResult = categoryWeightsSchema.safeParse(categoryWeights);
+    if (!weightsResult.success) throw new AppError('INVALID_WEIGHTS', 'Category weights must be valid and sum to 100%', 400);
+    const threshold = completionThreshold ?? 0.8;
+    if (typeof threshold !== 'number' || threshold <= 0 || threshold > 1) {
+      throw new AppError('INVALID_THRESHOLD', 'Completion threshold must be above 0 and at most 100%', 400);
+    }
+
     const event = await Event.findById(eventId);
     if (!event) throw new AppError('NOT_FOUND', 'Event not found', 404);
 
@@ -98,7 +116,7 @@ router.post(
         displayOrder: q.displayOrder,
       })),
       categoryWeights,
-      completionThreshold: completionThreshold ?? 0.8,
+      completionThreshold: threshold,
       createdBy: req.user!.userId,
     });
 

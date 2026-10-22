@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
-import { Calendar, Plus, Users, MapPin, Edit, Trash2 } from 'lucide-react';
+import { Calendar, Plus, Users, MapPin, Edit } from 'lucide-react';
 
 interface Event {
   _id: string;
@@ -12,15 +12,22 @@ interface Event {
   capacity: number;
   status: string;
   eventMode: string;
+  registeredCount: number;
 }
 
 export function AdminEventsPage() {
+  const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ['admin-events'],
     queryFn: () => api('/api/v1/admin/events') as unknown as { data: { events: Event[] } },
   });
 
   const events = data?.data.events ?? [];
+  const transition = useMutation({
+    mutationFn: ({ id, action }: { id: string; action: string }) =>
+      api(`/api/v1/events/${id}/${action}`, { method: 'POST' }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-events'] }),
+  });
 
   const statusColor = (status: string) => {
     switch (status) {
@@ -83,12 +90,20 @@ export function AdminEventsPage() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <button className="rounded-lg border border-gray-200 p-2 text-gray-600 hover:bg-gray-50">
+                  <Link to={`/admin/events/${event._id}/edit`} aria-label={`Edit ${event.name}`} className="rounded-lg border border-gray-200 p-2 text-gray-600 hover:bg-gray-50">
                     <Edit className="h-4 w-4" />
-                  </button>
-                  <button className="rounded-lg border border-gray-200 p-2 text-gray-600 hover:bg-red-50 hover:text-red-500">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  </Link>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4">
+                <p className="text-sm text-gray-500">{event.registeredCount ?? 0} registered</p>
+                <div className="flex flex-wrap gap-2">
+                  {event.status === 'draft' && <button onClick={() => transition.mutate({ id: event._id, action: 'publish' })} className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white">Publish</button>}
+                  {event.status === 'published' && <button onClick={() => transition.mutate({ id: event._id, action: 'open-registration' })} className="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white">Open registration</button>}
+                  {event.status === 'registration_open' && <button onClick={() => transition.mutate({ id: event._id, action: 'close-registration' })} className="rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-medium text-white">Close registration</button>}
+                  {['registration_open', 'registration_closed'].includes(event.status) && <button onClick={() => transition.mutate({ id: event._id, action: 'start' })} className="rounded-lg bg-purple-600 px-3 py-1.5 text-sm font-medium text-white">Start event</button>}
+                  {event.status === 'in_progress' && <button onClick={() => transition.mutate({ id: event._id, action: 'complete' })} className="rounded-lg bg-green-700 px-3 py-1.5 text-sm font-medium text-white">Complete event</button>}
+                  {event.status === 'completed' && <button onClick={() => transition.mutate({ id: event._id, action: 'archive' })} className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600">Archive</button>}
                 </div>
               </div>
             </div>
@@ -100,6 +115,7 @@ export function AdminEventsPage() {
           )}
         </div>
       )}
+      {transition.isError && <p role="alert" className="text-sm text-red-600">{(transition.error as Error).message}</p>}
     </div>
   );
 }

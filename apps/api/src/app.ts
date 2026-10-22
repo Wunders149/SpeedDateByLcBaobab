@@ -12,6 +12,7 @@ import registrationRoutes from './modules/registrations/registrations.routes.js'
 import questionnaireRoutes from './modules/questionnaires/questionnaires.routes.js';
 import matchingRoutes from './modules/matching/matching.routes.js';
 import adminRoutes from './modules/admin/admin.routes.js';
+import sessionRoutes from './modules/sessions/sessions.routes.js';
 import mongoose from 'mongoose';
 
 const app = express();
@@ -84,6 +85,7 @@ app.use('/api/v1/events', eventRoutes);
 app.use('/api/v1', registrationRoutes);
 app.use('/api/v1', questionnaireRoutes);
 app.use('/api/v1', matchingRoutes);
+app.use('/api/v1', sessionRoutes);
 app.use('/api/v1/admin', adminRoutes);
 
 // Error handling
