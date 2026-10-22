@@ -103,6 +103,10 @@ speed-dating-app/
    npm run seed
    ```
 
+   To create the first administrator for a new database, set `BOOTSTRAP_ADMIN_EMAIL` and
+   `BOOTSTRAP_ADMIN_PASSWORD` in `.env` and run `npm run bootstrap-admin`. The command refuses
+   to run when an administrator already exists.
+
 6. Start development servers:
    ```bash
    npm run dev

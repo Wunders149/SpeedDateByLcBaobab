@@ -19,6 +19,17 @@ import { calculateCompletion } from '@speed-date/shared';
 
 const router = Router();
 
+async function requireEventRegistration(eventId: string, participantId: string): Promise<void> {
+  const registration = await Registration.findOne({
+    eventId,
+    participantId,
+    registrationStatus: { $ne: 'withdrawn' },
+  }).select('_id');
+  if (!registration) {
+    throw new AppError('REGISTRATION_REQUIRED', 'Register for this event before accessing its questionnaire', 403);
+  }
+}
+
 router.get('/admin/events/:eventId/questionnaires', authenticate, requireAdmin, async (req: Request, res: Response) => {
   const event = await Event.findById(req.params.eventId);
   if (!event) throw new AppError('NOT_FOUND', 'Event not found', 404);
@@ -169,6 +180,7 @@ router.get('/events/:eventId/questionnaire', authenticate, async (req: Request, 
 
   const event = await Event.findById(eventId);
   if (!event) throw new AppError('NOT_FOUND', 'Event not found', 404);
+  await requireEventRegistration(eventId as string, req.user!.userId);
 
   if (!event.questionnaireVersionId) {
     throw new AppError('NO_QUESTIONNAIRE', 'No questionnaire configured for this event', 404);
@@ -216,6 +228,7 @@ router.put(
 
     const event = await Event.findById(eventId);
     if (!event) throw new AppError('NOT_FOUND', 'Event not found', 404);
+    await requireEventRegistration(eventId as string, req.user!.userId);
     if (!event.questionnaireVersionId)
       throw new AppError('NO_QUESTIONNAIRE', 'No questionnaire configured', 404);
 
@@ -265,6 +278,7 @@ router.post(
 
     const event = await Event.findById(eventId);
     if (!event) throw new AppError('NOT_FOUND', 'Event not found', 404);
+    await requireEventRegistration(eventId as string, req.user!.userId);
     if (!event.questionnaireVersionId)
       throw new AppError('NO_QUESTIONNAIRE', 'No questionnaire configured', 404);
 

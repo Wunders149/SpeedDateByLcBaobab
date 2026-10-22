@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace apps/api\" \"npm run dev --workspace apps/web\"",
     "build": "npm run build --workspace packages/shared && npm run build --workspace apps/api && npm run build --workspace apps/web",
+    "bootstrap-admin": "npm run bootstrap-admin --workspace apps/api",
     "test": "npm run test --workspace packages/shared -- --run && npm run test --workspace apps/api -- --run && npm run test --workspace apps/web -- --run",
     "seed": "npm run seed --workspace apps/api",
     "lint": "eslint .",

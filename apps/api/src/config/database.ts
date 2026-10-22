@@ -10,7 +10,8 @@ export async function connectDatabase(): Promise<void> {
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
     });
-    console.log(`[DB] Connected to MongoDB at ${MONGODB_URI}`);
+    const safeUri = MONGODB_URI.replace(/(mongodb(?:\+srv)?:\/\/[^:]+:)[^@]+@/i, '$1***@');
+    console.log(`[DB] Connected to MongoDB at ${safeUri}`);
   } catch (error) {
     console.error('[DB] Connection failed:', error);
     if (process.env.NODE_ENV !== 'test') {

@@ -145,7 +145,12 @@ router.post('/logout', authenticate, async (req: Request, res: Response) => {
 router.get('/me', authenticate, async (req: Request, res: Response) => {
   const user = await User.findById(req.user!.userId).select('-passwordHash');
   if (!user) {
-    throw new AppError('NOT_FOUND', 'User not found', 404);
+    res.clearCookie('token');
+    res.status(401).json({
+      success: false,
+      error: { code: 'UNAUTHORIZED', message: 'Session expired. Please sign in again.' },
+    });
+    return;
   }
 
   const profile = await ParticipantProfile.findOne({ userId: user._id });

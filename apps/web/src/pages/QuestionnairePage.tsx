@@ -27,12 +27,23 @@ interface QuestionnaireData {
   } | null;
 }
 
+interface Registration {
+  eventId: string;
+  registrationStatus: string;
+}
+
 export function QuestionnairePage() {
   const { user } = useAuth();
   const { language, t } = useLanguage();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number | string>>({});
   const [eventId, setEventId] = useState<string | null>(null);
+
+  const { data: registrationsData } = useQuery({
+    queryKey: ['my-registrations'],
+    queryFn: () => api<{ data: { registrations: Registration[] } }>('/api/v1/my-registrations'),
+    enabled: !!user,
+  });
 
   const { data: eventsData } = useQuery({
     queryKey: ['events'],
@@ -41,7 +52,12 @@ export function QuestionnairePage() {
     enabled: !!user,
   });
 
-  const events = eventsData?.data.events ?? [];
+  const registeredEventIds = new Set(
+    (registrationsData?.data.registrations ?? [])
+      .filter((registration) => registration.registrationStatus !== 'withdrawn')
+      .map((registration) => registration.eventId),
+  );
+  const events = (eventsData?.data.events ?? []).filter((event) => registeredEventIds.has(event.id));
   const selectedEvent = eventId ?? events[0]?.id;
 
   const { data: questionnaireData, isLoading } = useQuery({
