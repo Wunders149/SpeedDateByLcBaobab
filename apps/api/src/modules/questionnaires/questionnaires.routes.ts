@@ -105,6 +105,7 @@ router.post(
       questionSnapshots: questions.map((q) => ({
         questionId: q._id,
         text: q.text,
+        textFr: q.textFr,
         type: q.type,
         category: q.category,
         options: q.options,

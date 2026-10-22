@@ -21,6 +21,7 @@ export interface Profile {
   privateProfile: {
     communicationPreference: string;
   };
+  consentRecords: Array<{ purpose: string; consentedAt: string; revokedAt?: string }>;
 }
 
 interface AuthContextType {

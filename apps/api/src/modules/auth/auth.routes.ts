@@ -166,6 +166,11 @@ router.get('/me', authenticate, async (req: Request, res: Response) => {
             displayName: profile.displayName,
             publicProfile: profile.publicProfile,
             privateProfile: profile.privateProfile,
+            consentRecords: profile.consentRecords.map((record) => ({
+              purpose: record.purpose,
+              consentedAt: record.consentedAt,
+              revokedAt: record.revokedAt,
+            })),
           }
         : null,
     },

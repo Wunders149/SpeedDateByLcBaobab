@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Heart, Users, Sparkles, Shield, Clock, MapPin, ArrowRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface EventItem {
   id: string;
@@ -15,6 +16,7 @@ interface EventItem {
 }
 
 export function LandingPage() {
+  const { t, language } = useLanguage();
   const { data: eventsData } = useQuery({
     queryKey: ['events'],
     queryFn: () => api<{ data: { events: EventItem[] } }>('/api/v1/events'),
@@ -28,24 +30,23 @@ export function LandingPage() {
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-rose-500 via-pink-500 to-purple-600 p-8 text-white md:p-16">
         <div className="relative z-10 max-w-2xl">
           <h1 className="text-4xl font-bold leading-tight md:text-6xl">
-            Meet someone who gets you.
+            {t('Meet someone who gets you.')}
           </h1>
           <p className="mt-4 text-lg text-rose-100 md:text-xl">
-            SpeedDate combines thoughtful matching with the excitement of in-person events.
-            Register, discover compatible people, and connect meaningfully.
+            {t('SpeedDate combines thoughtful matching with the excitement of in-person events. Register, discover compatible people, and connect meaningfully.')}
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
             <Link
               to="/register"
               className="flex items-center gap-2 rounded-full bg-white px-6 py-3 font-semibold text-rose-600 hover:bg-rose-50"
             >
-              Get Started <ArrowRight className="h-4 w-4" />
+              {t('Get Started')} <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               to="/events"
               className="flex items-center gap-2 rounded-full border border-white/30 px-6 py-3 font-semibold text-white hover:bg-white/10"
             >
-              View Events
+              {t('View Events')}
             </Link>
           </div>
         </div>
@@ -55,7 +56,7 @@ export function LandingPage() {
 
       {/* How It Works */}
       <section>
-        <h2 className="text-center text-3xl font-bold text-gray-900">How It Works</h2>
+        <h2 className="text-center text-3xl font-bold text-gray-900">{t('How It Works')}</h2>
         <div className="mt-8 grid gap-6 md:grid-cols-3">
           {[
             {
@@ -81,8 +82,8 @@ export function LandingPage() {
               <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-rose-100">
                 <Icon className="h-6 w-6 text-rose-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-              <p className="mt-2 text-sm text-gray-600">{description}</p>
+              <h3 className="text-lg font-semibold text-gray-900">{t(title)}</h3>
+              <p className="mt-2 text-sm text-gray-600">{t(description)}</p>
             </div>
           ))}
         </div>
@@ -91,9 +92,9 @@ export function LandingPage() {
       {/* Upcoming Events */}
       <section>
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">Upcoming Events</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t('Upcoming Events')}</h2>
           <Link to="/events" className="text-sm font-medium text-rose-600 hover:text-rose-700">
-            View all
+            {t('View all')}
           </Link>
         </div>
         <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -111,18 +112,18 @@ export function LandingPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-rose-400" />
-                  {new Date(event.startAt).toLocaleDateString('en-US', { dateStyle: 'long' })}
+                  {new Date(event.startAt).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { dateStyle: 'long' })}
                 </div>
               </div>
               <div className="mt-4 flex items-center justify-between">
                 <span className="text-sm text-gray-500">
-                  {event.registeredCount}/{event.capacity} spots
+                  {event.registeredCount}/{event.capacity} {t('spots')}
                 </span>
                 <Link
                   to="/register"
                   className="rounded-full bg-rose-500 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-600"
                 >
-                  Register
+                  {t('Register')}
                 </Link>
               </div>
             </div>

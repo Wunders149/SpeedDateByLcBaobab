@@ -4,6 +4,7 @@ import { QuestionCategory, QuestionType, ScoringModel } from '@speed-date/shared
 export interface IQuestion extends Document {
   _id: mongoose.Types.ObjectId;
   text: string;
+  textFr?: string;
   type: QuestionType;
   category: QuestionCategory;
   options: Array<{
@@ -31,6 +32,7 @@ export interface IQuestion extends Document {
 const questionSchema = new Schema<IQuestion>(
   {
     text: { type: String, required: true, trim: true },
+    textFr: { type: String, trim: true },
     type: {
       type: String,
       enum: Object.values(QuestionType),
@@ -45,6 +47,7 @@ const questionSchema = new Schema<IQuestion>(
       {
         id: { type: String, required: true },
         text: { type: String, required: true },
+        textFr: { type: String, trim: true },
         value: { type: Number },
         weight: { type: Number },
       },

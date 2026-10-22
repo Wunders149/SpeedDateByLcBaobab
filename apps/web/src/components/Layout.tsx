@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage, type Language } from '../contexts/LanguageContext';
 import { Heart, LogOut, User, Menu, X, LayoutDashboard, CalendarDays, ClipboardCheck, QrCode, HeartHandshake, Timer, BarChart3, Bell } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -16,6 +17,7 @@ const adminLinks = [
 
 export function Layout() {
   const { user, logout, loading } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -31,6 +33,9 @@ export function Layout() {
 
   const navClass = ({ isActive }: { isActive: boolean }) =>
     `inline-flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition ${isActive ? 'bg-rose-50 text-rose-700' : 'text-slate-600 hover:bg-slate-50 hover:text-rose-700'}`;
+  const languagePicker = <div className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 p-0.5" aria-label="Language / Langue">
+    {(['en', 'fr'] as Language[]).map((option) => <button key={option} type="button" onClick={() => setLanguage(option)} aria-pressed={language === option} className={`rounded-md px-2.5 py-1 text-xs font-bold uppercase transition ${language === option ? 'bg-white text-rose-700 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>{option}</button>)}
+  </div>;
 
   return (
     <div className="flex min-h-screen flex-col bg-[#fffafc] text-slate-800">
@@ -42,18 +47,19 @@ export function Layout() {
           </Link>
 
           <nav aria-label="Main navigation" className="hidden items-center gap-1 md:flex">
-            <NavLink to="/events" className={navClass}>Events</NavLink>
-            {user && <NavLink to="/dashboard" className={navClass}>My dashboard</NavLink>}
-            {isAdmin && <NavLink to="/admin" className={navClass}>Host workspace</NavLink>}
+            <NavLink to="/events" className={navClass}>{t('Events')}</NavLink>
+            {user && <NavLink to="/dashboard" className={navClass}>{t('My dashboard')}</NavLink>}
+            {isAdmin && <NavLink to="/admin" className={navClass}>{t('Host workspace')}</NavLink>}
           </nav>
 
           <div className="hidden items-center gap-2 md:flex">
+            {languagePicker}
             {loading ? <div className="h-9 w-24 animate-pulse rounded-lg bg-slate-100" /> : user ? <>
-              <Link to="/profile" className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-rose-700"><User className="h-4 w-4" />Profile</Link>
-              <button onClick={handleLogout} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"><LogOut className="h-4 w-4" />Log out</button>
+              <Link to="/profile" className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-rose-700"><User className="h-4 w-4" />{t('Profile')}</Link>
+              <button onClick={handleLogout} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-600 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700"><LogOut className="h-4 w-4" />{t('Log out')}</button>
             </> : <>
-              <Link to="/login" className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">Log in</Link>
-              <Link to="/register" className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-rose-200 transition hover:bg-rose-700">Join now</Link>
+              <Link to="/login" className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-50">{t('Log in')}</Link>
+              <Link to="/register" className="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm shadow-rose-200 transition hover:bg-rose-700">{t('Join now')}</Link>
             </>}
           </div>
 
@@ -63,18 +69,19 @@ export function Layout() {
         </div>
         {mobileMenuOpen && <div className="border-t border-slate-100 bg-white px-4 py-4 md:hidden">
           <nav aria-label="Mobile navigation" className="flex flex-col gap-1">
-            <Link to="/events" className="rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-rose-50">Browse events</Link>
-            {user && <><Link to="/dashboard" className="rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-rose-50">My dashboard</Link><Link to="/profile" className="rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-rose-50">My profile</Link></>}
-            {isAdmin && <Link to="/admin" className="rounded-lg px-3 py-2.5 text-sm font-semibold text-rose-700 hover:bg-rose-50">Host workspace</Link>}
+            {languagePicker}
+            <Link to="/events" className="rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-rose-50">{t('Browse events')}</Link>
+            {user && <><Link to="/dashboard" className="rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-rose-50">{t('My dashboard')}</Link><Link to="/profile" className="rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-rose-50">{t('My profile')}</Link></>}
+            {isAdmin && <Link to="/admin" className="rounded-lg px-3 py-2.5 text-sm font-semibold text-rose-700 hover:bg-rose-50">{t('Host workspace')}</Link>}
             <div className="my-2 border-t border-slate-100" />
-            {user ? <button onClick={handleLogout} className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-600 hover:bg-slate-50"><LogOut className="h-4 w-4" />Log out</button> : <div className="flex gap-2"><Link to="/login" className="flex-1 rounded-lg border border-slate-200 px-4 py-2.5 text-center text-sm font-semibold">Log in</Link><Link to="/register" className="flex-1 rounded-lg bg-rose-600 px-4 py-2.5 text-center text-sm font-semibold text-white">Join now</Link></div>}
+            {user ? <button onClick={handleLogout} className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-600 hover:bg-slate-50"><LogOut className="h-4 w-4" />{t('Log out')}</button> : <div className="flex gap-2"><Link to="/login" className="flex-1 rounded-lg border border-slate-200 px-4 py-2.5 text-center text-sm font-semibold">{t('Log in')}</Link><Link to="/register" className="flex-1 rounded-lg bg-rose-600 px-4 py-2.5 text-center text-sm font-semibold text-white">{t('Join now')}</Link></div>}
           </nav>
         </div>}
       </header>
 
       {inAdmin && <div className="border-b border-slate-200 bg-white">
         <nav aria-label="Host workspace" className="mx-auto flex max-w-7xl gap-1 overflow-x-auto px-4 py-2 sm:px-6">
-          {adminLinks.map(({ to, label, icon: Icon, end }) => <NavLink key={to} to={to} end={end} className={navClass}><Icon className="h-4 w-4" /><span>{label}</span></NavLink>)}
+          {adminLinks.map(({ to, label, icon: Icon, end }) => <NavLink key={to} to={to} end={end} className={navClass}><Icon className="h-4 w-4" /><span>{t(label)}</span></NavLink>)}
         </nav>
       </div>}
 

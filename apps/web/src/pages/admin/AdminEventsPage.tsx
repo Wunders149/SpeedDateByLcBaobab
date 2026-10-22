@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { Calendar, Plus, Users, MapPin, Edit } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface Event {
   _id: string;
@@ -16,6 +17,7 @@ interface Event {
 }
 
 export function AdminEventsPage() {
+  const { t, language } = useLanguage();
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ['admin-events'],
@@ -45,13 +47,13 @@ export function AdminEventsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Events</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('Events')}</h1>
         <Link
           to="/admin/events/new"
           className="flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 font-semibold text-white hover:bg-rose-600"
         >
           <Plus className="h-4 w-4" />
-          Create Event
+          {t('Create event')}
         </Link>
       </div>
 
@@ -68,7 +70,7 @@ export function AdminEventsPage() {
                   <div className="flex items-center gap-3">
                     <h3 className="text-lg font-semibold text-gray-900">{event.name}</h3>
                     <span className={`rounded-full px-3 py-1 text-xs font-medium ${statusColor(event.status)}`}>
-                      {event.status.replace(/_/g, ' ')}
+                      {t(event.status.replace(/_/g, ' '))}
                     </span>
                   </div>
                   <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
@@ -78,11 +80,11 @@ export function AdminEventsPage() {
                     </span>
                     <span className="flex items-center gap-1">
                       <Calendar className="h-4 w-4" />
-                      {new Date(event.startAt).toLocaleDateString()}
+                      {new Date(event.startAt).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US')}
                     </span>
                     <span className="flex items-center gap-1">
                       <Users className="h-4 w-4" />
-                      {event.capacity} capacity
+                      {event.capacity} {t('capacity')}
                     </span>
                     <span className="rounded bg-gray-100 px-2 py-0.5 text-xs">
                       {event.eventMode}
@@ -96,21 +98,21 @@ export function AdminEventsPage() {
                 </div>
               </div>
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 pt-4">
-                <p className="text-sm text-gray-500">{event.registeredCount ?? 0} registered</p>
+                <p className="text-sm text-gray-500">{event.registeredCount ?? 0} {t('registered')}</p>
                 <div className="flex flex-wrap gap-2">
-                  {event.status === 'draft' && <button onClick={() => transition.mutate({ id: event._id, action: 'publish' })} className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white">Publish</button>}
-                  {event.status === 'published' && <button onClick={() => transition.mutate({ id: event._id, action: 'open-registration' })} className="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white">Open registration</button>}
-                  {event.status === 'registration_open' && <button onClick={() => transition.mutate({ id: event._id, action: 'close-registration' })} className="rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-medium text-white">Close registration</button>}
-                  {['registration_open', 'registration_closed'].includes(event.status) && <button onClick={() => transition.mutate({ id: event._id, action: 'start' })} className="rounded-lg bg-purple-600 px-3 py-1.5 text-sm font-medium text-white">Start event</button>}
-                  {event.status === 'in_progress' && <button onClick={() => transition.mutate({ id: event._id, action: 'complete' })} className="rounded-lg bg-green-700 px-3 py-1.5 text-sm font-medium text-white">Complete event</button>}
-                  {event.status === 'completed' && <button onClick={() => transition.mutate({ id: event._id, action: 'archive' })} className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600">Archive</button>}
+                  {event.status === 'draft' && <button onClick={() => transition.mutate({ id: event._id, action: 'publish' })} className="rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-medium text-white">{t('Publish')}</button>}
+                  {event.status === 'published' && <button onClick={() => transition.mutate({ id: event._id, action: 'open-registration' })} className="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white">{t('Open registration')}</button>}
+                  {event.status === 'registration_open' && <button onClick={() => transition.mutate({ id: event._id, action: 'close-registration' })} className="rounded-lg bg-amber-600 px-3 py-1.5 text-sm font-medium text-white">{t('Close registration')}</button>}
+                  {['registration_open', 'registration_closed'].includes(event.status) && <button onClick={() => transition.mutate({ id: event._id, action: 'start' })} className="rounded-lg bg-purple-600 px-3 py-1.5 text-sm font-medium text-white">{t('Start event')}</button>}
+                  {event.status === 'in_progress' && <button onClick={() => transition.mutate({ id: event._id, action: 'complete' })} className="rounded-lg bg-green-700 px-3 py-1.5 text-sm font-medium text-white">{t('Complete event')}</button>}
+                  {event.status === 'completed' && <button onClick={() => transition.mutate({ id: event._id, action: 'archive' })} className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-600">{t('Archive')}</button>}
                 </div>
               </div>
             </div>
           ))}
           {events.length === 0 && (
             <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center text-gray-500">
-              No events yet. Create your first event to get started.
+              {t('No events yet. Create your first event to get started.')}
             </div>
           )}
         </div>

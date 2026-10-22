@@ -8,9 +8,10 @@ export interface IQuestionnaireVersion extends Document {
   questionSnapshots: Array<{
     questionId: mongoose.Types.ObjectId;
     text: string;
+    textFr?: string;
     type: string;
     category: QuestionCategory;
-    options: Array<{ id: string; text: string; value?: number; weight?: number }>;
+    options: Array<{ id: string; text: string; textFr?: string; value?: number; weight?: number }>;
     weight: number;
     scoringModel: string;
     required: boolean;
@@ -34,12 +35,14 @@ const questionnaireVersionSchema = new Schema<IQuestionnaireVersion>(
       {
         questionId: { type: Schema.Types.ObjectId, ref: 'Question' },
         text: { type: String, required: true },
+        textFr: { type: String, trim: true },
         type: { type: String, required: true },
         category: { type: String, required: true },
         options: [
           {
             id: { type: String, required: true },
             text: { type: String, required: true },
+            textFr: { type: String, trim: true },
             value: { type: Number },
             weight: { type: Number },
           },

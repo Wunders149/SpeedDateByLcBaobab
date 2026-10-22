@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Heart } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Match {
   id: string;
@@ -21,6 +22,7 @@ interface MatchesData {
 
 export function MatchesPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const { data, isLoading } = useQuery({
     queryKey: ['my-matches'],
@@ -39,7 +41,7 @@ export function MatchesPage() {
   if (!user) {
     return (
       <div className="rounded-xl bg-yellow-50 p-4 text-yellow-700">
-        Please sign in to view your matches.
+        {t('Please sign in to view your matches.')}
       </div>
     );
   }
@@ -64,16 +66,16 @@ export function MatchesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Your Matches</h1>
-        <p className="mt-2 text-gray-600">People you&apos;re compatible with</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t('Your Matches')}</h1>
+        <p className="mt-2 text-gray-600">{t("People you're compatible with")}</p>
       </div>
 
       {matches.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <Heart className="mx-auto h-12 w-12 text-gray-400" />
-          <p className="mt-4 text-gray-500">No matches available yet</p>
+          <p className="mt-4 text-gray-500">{t('No matches available yet')}</p>
           <p className="mt-2 text-sm text-gray-400">
-            Matches will be revealed after the event organizer publishes them.
+            {t('Matches will be revealed after the event organizer publishes them.')}
           </p>
         </div>
       ) : (
@@ -90,9 +92,9 @@ export function MatchesPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">
-                      Match #{match.participantId.slice(0, 8)}
+                      {t('Match')} #{match.participantId.slice(0, 8)}
                     </h3>
-                    <p className="text-sm text-gray-500">Compatibility Score</p>
+                    <p className="text-sm text-gray-500">{t('Compatibility Score')}</p>
                   </div>
                 </div>
                 <span
@@ -128,10 +130,10 @@ export function MatchesPage() {
 
               <div className="mt-4 flex gap-2">
                 <button className="flex-1 rounded-lg bg-rose-500 py-2 text-sm font-semibold text-white hover:bg-rose-600">
-                  Express Interest
+                  {t('Express Interest')}
                 </button>
                 <button className="flex-1 rounded-lg border border-gray-200 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">
-                  View Profile
+                  {t('View Profile')}
                 </button>
               </div>
             </div>

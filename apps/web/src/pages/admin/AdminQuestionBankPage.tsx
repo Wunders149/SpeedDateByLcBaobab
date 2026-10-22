@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../../lib/api';
 import { Plus, GripVertical } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface Question {
   _id: string;
   text: string;
+  textFr?: string;
   type: string;
   category: string;
   weight: number;
@@ -17,7 +19,8 @@ interface Question {
 export function AdminQuestionBankPage() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({ text: '', type: 'single_choice', category: 'values', options: '' });
+  const { language } = useLanguage();
+  const [form, setForm] = useState({ text: '', textFr: '', type: 'single_choice', category: 'values', options: '', optionsFr: '' });
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({
@@ -27,10 +30,10 @@ export function AdminQuestionBankPage() {
 
   const createMutation = useMutation({
     mutationFn: () => api('/api/v1/admin/questions', { method: 'POST', body: JSON.stringify({
-      text: form.text, type: form.type, category: form.category, weight: 1, scoringModel: 'similarity',
-      required: true, options: form.options.split('\n').map((text, index) => ({ id: `option-${index + 1}`, text: text.trim() })).filter((option) => option.text),
+      text: form.text, textFr: form.textFr || undefined, type: form.type, category: form.category, weight: 1, scoringModel: 'similarity',
+      required: true, options: form.options.split('\n').map((text, index) => ({ id: `option-${index + 1}`, text: text.trim(), textFr: form.optionsFr.split('\n')[index]?.trim() || undefined })).filter((option) => option.text),
     }) }),
-    onSuccess: () => { setShowCreate(false); setForm({ text: '', type: 'single_choice', category: 'values', options: '' }); queryClient.invalidateQueries({ queryKey: ['admin-questions'] }); },
+    onSuccess: () => { setShowCreate(false); setForm({ text: '', textFr: '', type: 'single_choice', category: 'values', options: '', optionsFr: '' }); queryClient.invalidateQueries({ queryKey: ['admin-questions'] }); },
   });
   const toggleMutation = useMutation({
     mutationFn: ({ id, active }: { id: string; active: boolean }) => api(`/api/v1/admin/questions/${id}`, { method: 'PATCH', body: JSON.stringify({ active }) }),
@@ -56,18 +59,19 @@ export function AdminQuestionBankPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Question Bank</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{language === 'fr' ? 'Banque de questions' : 'Question Bank'}</h1>
         <button onClick={() => setShowCreate((value) => !value)} className="flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 font-semibold text-white hover:bg-rose-600">
           <Plus className="h-4 w-4" />
-          Add Question
+          {language === 'fr' ? 'Ajouter une question' : 'Add Question'}
         </button>
       </div>
 
       {showCreate && <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate(); }} className="space-y-4 rounded-2xl border border-rose-100 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold">Create question</h2>
-        <label className="block text-sm font-medium">Question text<input required minLength={5} maxLength={500} value={form.text} onChange={(e) => setForm((value) => ({ ...value, text: e.target.value }))} className="mt-1 block w-full rounded-lg border px-3 py-2" /></label>
+        <h2 className="text-lg font-semibold">{language === 'fr' ? 'Créer une question' : 'Create question'}</h2>
+        <label className="block text-sm font-medium">{language === 'fr' ? 'Question (anglais)' : 'Question text (English)'}<input required minLength={5} maxLength={500} value={form.text} onChange={(e) => setForm((value) => ({ ...value, text: e.target.value }))} className="mt-1 block w-full rounded-lg border px-3 py-2" /></label>
+        <label className="block text-sm font-medium">{language === 'fr' ? 'Question (français)' : 'Question text (French)'}<input maxLength={500} value={form.textFr} onChange={(e) => setForm((value) => ({ ...value, textFr: e.target.value }))} className="mt-1 block w-full rounded-lg border px-3 py-2" /></label>
         <div className="grid gap-4 sm:grid-cols-2"><label className="text-sm font-medium">Category<select value={form.category} onChange={(e) => setForm((value) => ({ ...value, category: e.target.value }))} className="mt-1 block w-full rounded-lg border px-3 py-2">{categories.map((category) => <option key={category} value={category}>{category.replace(/_/g, ' ')}</option>)}</select></label><label className="text-sm font-medium">Question type<select value={form.type} onChange={(e) => setForm((value) => ({ ...value, type: e.target.value }))} className="mt-1 block w-full rounded-lg border px-3 py-2"><option value="single_choice">Single choice</option><option value="multiple_choice">Multiple choice</option><option value="agreement_scale">Agreement scale</option><option value="preference_scale">Preference scale</option><option value="deal_breaker">Deal breaker</option><option value="icebreaker">Icebreaker</option><option value="short_text">Short text</option><option value="ranking">Ranking</option></select></label></div>
-        <label className="block text-sm font-medium">Answer options (one per line)<textarea required value={form.options} onChange={(e) => setForm((value) => ({ ...value, options: e.target.value }))} rows={4} className="mt-1 block w-full rounded-lg border px-3 py-2" /></label>
+        <div className="grid gap-4 sm:grid-cols-2"><label className="block text-sm font-medium">{language === 'fr' ? 'Réponses en anglais (une par ligne)' : 'Answer options in English (one per line)'}<textarea required value={form.options} onChange={(e) => setForm((value) => ({ ...value, options: e.target.value }))} rows={4} className="mt-1 block w-full rounded-lg border px-3 py-2" /></label><label className="block text-sm font-medium">{language === 'fr' ? 'Réponses en français (même ordre)' : 'Answer options in French (same order)'}<textarea value={form.optionsFr} onChange={(e) => setForm((value) => ({ ...value, optionsFr: e.target.value }))} rows={4} className="mt-1 block w-full rounded-lg border px-3 py-2" /></label></div>
         {createMutation.isError && <p role="alert" className="text-sm text-red-600">{(createMutation.error as Error).message}</p>}
         <button disabled={createMutation.isPending} className="rounded-lg bg-rose-500 px-4 py-2 font-semibold text-white disabled:opacity-50">{createMutation.isPending ? 'Saving…' : 'Save question'}</button>
       </form>}
@@ -119,7 +123,7 @@ export function AdminQuestionBankPage() {
                       <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">Inactive</span>
                     )}
                   </div>
-                  <p className="mt-2 text-sm text-gray-900">{q.text}</p>
+                  <p className="mt-2 text-sm text-gray-900">{language === 'fr' ? q.textFr || q.text : q.text}</p>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => toggleMutation.mutate({ id: q._id, active: !q.active })} className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50">

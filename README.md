@@ -98,7 +98,7 @@ speed-dating-app/
    BCRYPT_ROUNDS=12
    ```
 
-5. Seed the database (optional, for development):
+5. Initialize the default questionnaire question bank (optional; safe to run more than once):
    ```bash
    npm run seed
    ```
@@ -110,17 +110,6 @@ speed-dating-app/
 
 7. Open the frontend at http://localhost:5173
 
-### Demo Accounts
-
-After running the seed script, you can use these accounts:
-
-| Role | Email | Password |
-|------|-------|----------|
-| Super Admin | superadmin@speeddate.dev | SuperAdmin123! |
-| Event Admin | admin@speeddate.dev | Admin123! |
-| Moderator | moderator@speeddate.dev | Moderator123! |
-| Participant | emma@example.com | Password123! |
-
 ## Available Scripts
 
 | Command | Description |
@@ -128,7 +117,7 @@ After running the seed script, you can use these accounts:
 | `npm run dev` | Start both API and web dev servers |
 | `npm run build` | Build all packages |
 | `npm test` | Run all tests |
-| `npm run seed` | Seed the database with demo data |
+| `npm run seed` | Add default questionnaire questions if the question bank is empty; does not create demo users or events |
 
 ## API Endpoints
 

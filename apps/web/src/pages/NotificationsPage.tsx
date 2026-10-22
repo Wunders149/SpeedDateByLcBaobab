@@ -3,6 +3,7 @@ import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Bell, Check, Trash2, FileText, Heart } from 'lucide-react';
 import { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Notification {
   _id: string;
@@ -15,6 +16,7 @@ interface Notification {
 
 export function NotificationsPage() {
   const { user } = useAuth();
+  const { t, language } = useLanguage();
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
 
   const { data, isLoading } = useQuery({
@@ -45,16 +47,16 @@ export function NotificationsPage() {
     const d = new Date(date);
     const now = new Date();
     const diff = now.getTime() - d.getTime();
-    if (diff < 60000) return 'Just now';
-    if (diff < 3600000) return `${Math.floor(diff / 60000)} min ago`;
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)} hours ago`;
-    return d.toLocaleDateString();
+    if (diff < 60000) return t('Just now');
+    if (diff < 3600000) return language === 'fr' ? `Il y a ${Math.floor(diff / 60000)} min` : `${Math.floor(diff / 60000)} min ago`;
+    if (diff < 86400000) return language === 'fr' ? `Il y a ${Math.floor(diff / 3600000)} h` : `${Math.floor(diff / 3600000)} hours ago`;
+    return d.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US');
   };
 
   if (!user) {
     return (
       <div className="rounded-xl bg-yellow-50 p-4 text-yellow-700">
-        Please sign in to view your notifications.
+        {t('Please sign in to view your notifications.')}
       </div>
     );
   }
@@ -63,13 +65,13 @@ export function NotificationsPage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('Notifications')}</h1>
           <p className="mt-1 text-gray-600">
-            {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : 'All caught up!'}
+            {unreadCount > 0 ? (language === 'fr' ? `${unreadCount} notification${unreadCount > 1 ? 's' : ''} non lue${unreadCount > 1 ? 's' : ''}` : `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}`) : t('All caught up!')}
           </p>
         </div>
         <button className="text-sm font-medium text-rose-600 hover:text-rose-700">
-          Mark all as read
+          {t('Mark all as read')}
         </button>
       </div>
 
@@ -81,7 +83,7 @@ export function NotificationsPage() {
             filter === 'all' ? 'bg-rose-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          All
+          {t('All')}
         </button>
         <button
           onClick={() => setFilter('unread')}
@@ -89,7 +91,7 @@ export function NotificationsPage() {
             filter === 'unread' ? 'bg-rose-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
         >
-          Unread ({unreadCount})
+          {t('Unread')} ({unreadCount})
         </button>
       </div>
 
@@ -111,7 +113,7 @@ export function NotificationsPage() {
       ) : notifications.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center">
           <Bell className="mx-auto h-12 w-12 text-gray-400" />
-          <p className="mt-4 text-gray-500">No notifications yet</p>
+          <p className="mt-4 text-gray-500">{t('No notifications yet')}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -138,11 +140,11 @@ export function NotificationsPage() {
                   <p className="mt-1 text-sm text-gray-600">{notification.message}</p>
                   {!notification.readAt && (
                     <button className="mt-2 text-xs font-medium text-rose-600 hover:text-rose-700">
-                      Mark as read
+                      {t('Mark as read')}
                     </button>
                   )}
                 </div>
-                <button className="text-gray-400 hover:text-red-500" title="Delete" aria-label="Delete notification">
+                <button className="text-gray-400 hover:text-red-500" title={t('Delete')} aria-label={t('Delete notification')}>
                   <Trash2 className="h-4 w-4" />
                 </button>
               </div>

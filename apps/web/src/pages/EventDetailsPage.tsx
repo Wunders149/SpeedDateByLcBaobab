@@ -4,6 +4,7 @@ import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Calendar, MapPin, Clock, Users, ArrowLeft, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface EventDetail {
   id: string;
@@ -25,6 +26,7 @@ interface EventDetail {
 
 export function EventDetailsPage() {
   const { user } = useAuth();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [registering, setRegistering] = useState(false);
   const { eventId } = useParams<{ eventId: string }>();
@@ -43,7 +45,7 @@ export function EventDetailsPage() {
       }),
     onSuccess: () => {
       setRegistering(false);
-      alert('Registration submitted successfully!');
+      alert(language === 'fr' ? 'Inscription envoyée !' : 'Registration submitted successfully!');
       navigate('/dashboard');
     },
     onError: (err: Error) => {
@@ -63,7 +65,7 @@ export function EventDetailsPage() {
   if (error || !data) {
     return (
       <div className="rounded-xl bg-red-50 p-4 text-red-600">
-        Event not found or failed to load.
+        {t('Event not found or failed to load.')}
       </div>
     );
   }
@@ -74,16 +76,16 @@ export function EventDetailsPage() {
   const isFull = spotsLeft <= 0;
 
   const formatDate = (date: string) =>
-    new Date(date).toLocaleDateString('en-US', { dateStyle: 'full' });
+    new Date(date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { dateStyle: 'full' });
 
   const formatTime = (date: string) =>
-    new Date(date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    new Date(date).toLocaleTimeString(language === 'fr' ? 'fr-FR' : 'en-US', { hour: '2-digit', minute: '2-digit' });
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       <Link to="/events" className="inline-flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-rose-600">
         <ArrowLeft className="h-4 w-4" />
-        Back to Events
+        {t('Back to Events')}
       </Link>
 
       {/* Header */}
@@ -102,12 +104,12 @@ export function EventDetailsPage() {
       {/* Details Grid */}
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-2xl border border-rose-100 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">Event Details</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('Event Details')}</h2>
           <div className="mt-4 space-y-4">
             <div className="flex items-start gap-3">
               <Calendar className="mt-0.5 h-5 w-5 text-rose-500" />
               <div>
-                <p className="text-sm font-medium text-gray-900">Date & Time</p>
+                <p className="text-sm font-medium text-gray-900">{t('Date & Time')}</p>
                 <p className="text-sm text-gray-600">{formatDate(event.startAt)}</p>
                 <p className="text-sm text-gray-600">{formatTime(event.startAt)} – {formatTime(event.endAt)}</p>
               </div>
@@ -115,25 +117,25 @@ export function EventDetailsPage() {
             <div className="flex items-start gap-3">
               <MapPin className="mt-0.5 h-5 w-5 text-rose-500" />
               <div>
-                <p className="text-sm font-medium text-gray-900">Venue</p>
+                <p className="text-sm font-medium text-gray-900">{t('Venue')}</p>
                 <p className="text-sm text-gray-600">{event.venue}</p>
-                <p className="text-xs text-gray-500">Timezone: {event.timezone}</p>
+                <p className="text-xs text-gray-500">{t('Timezone:')} {event.timezone}</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Users className="mt-0.5 h-5 w-5 text-rose-500" />
               <div>
-                <p className="text-sm font-medium text-gray-900">Capacity</p>
-                <p className="text-sm text-gray-600">{event.registeredCount}/{event.capacity} registered</p>
+                <p className="text-sm font-medium text-gray-900">{t('Capacity')}</p>
+                <p className="text-sm text-gray-600">{event.registeredCount}/{event.capacity} {t('registered')}</p>
                 <p className={`text-sm ${isFull ? 'text-red-500 font-medium' : 'text-green-600'}`}>
-                  {isFull ? 'Event is full' : `${spotsLeft} spots remaining`}
+                  {isFull ? t('Event is full') : `${spotsLeft} ${t('spots remaining')}`}
                 </p>
               </div>
             </div>
             <div className="flex items-start gap-3">
               <Clock className="mt-0.5 h-5 w-5 text-rose-500" />
               <div>
-                <p className="text-sm font-medium text-gray-900">Registration Deadline</p>
+                <p className="text-sm font-medium text-gray-900">{t('Registration Deadline')}</p>
                 <p className="text-sm text-gray-600">{formatDate(event.registrationDeadline)}</p>
               </div>
             </div>
@@ -142,28 +144,28 @@ export function EventDetailsPage() {
 
         {/* Registration */}
         <div className="rounded-2xl border border-rose-100 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-semibold text-gray-900">Register</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('Register')}</h2>
           {!user ? (
             <div className="mt-4 space-y-4">
               <div className="flex items-center gap-2 rounded-lg bg-blue-50 p-3 text-sm text-blue-700">
                 <AlertCircle className="h-4 w-4" />
-                Please log in to register for this event.
+                {t('Please log in to register for this event.')}
               </div>
               <Link
                 to="/login"
                 className="block rounded-lg bg-rose-500 py-3 text-center font-semibold text-white"
               >
-                Log In
+                {t('Log In')}
               </Link>
             </div>
           ) : isFull ? (
             <div className="mt-4 rounded-lg bg-red-50 p-4 text-sm text-red-700">
-              This event is currently full. You may be added to the waitlist if you register.
+              {t('This event is currently full. You may be added to the waitlist if you register.')}
             </div>
           ) : registrationOpen ? (
             <div className="mt-4 space-y-4">
               <p className="text-sm text-gray-600">
-                Ready to join? Register now and complete the questionnaire to be matched with compatible participants.
+                {t('Ready to join? Register now and complete the questionnaire to be matched with compatible participants.')}
               </p>
               <button
                 onClick={() => {
@@ -173,18 +175,18 @@ export function EventDetailsPage() {
                 disabled={registering}
                 className="w-full rounded-lg bg-rose-500 py-3 font-semibold text-white hover:bg-rose-600 disabled:opacity-50"
               >
-                {registering ? 'Registering...' : 'Register Now'}
+                {registering ? t('Registering...') : t('Register Now')}
               </button>
             </div>
           ) : (
             <div className="mt-4 rounded-lg bg-yellow-50 p-4 text-sm text-yellow-700">
-              Registration is currently closed for this event.
+              {t('Registration is currently closed for this event.')}
             </div>
           )}
 
           {event.instructions && (
             <div className="mt-6">
-              <h3 className="text-sm font-semibold text-gray-900">Instructions</h3>
+              <h3 className="text-sm font-semibold text-gray-900">{t('Instructions')}</h3>
               <p className="mt-2 text-sm text-gray-600">{event.instructions}</p>
             </div>
           )}

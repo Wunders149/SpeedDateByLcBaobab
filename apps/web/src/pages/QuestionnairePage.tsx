@@ -3,12 +3,14 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { localizedQuestionText, useLanguage } from '../contexts/LanguageContext';
 
 interface Question {
   questionId: string;
   text: string;
+  textFr?: string;
   type: string;
-  options: Array<{ id: string; text: string; value?: number }>;
+  options: Array<{ id: string; text: string; textFr?: string; value?: number }>;
   required: boolean;
 }
 
@@ -27,6 +29,7 @@ interface QuestionnaireData {
 
 export function QuestionnairePage() {
   const { user } = useAuth();
+  const { language, t } = useLanguage();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number | string>>({});
   const [eventId, setEventId] = useState<string | null>(null);
@@ -63,14 +66,14 @@ export function QuestionnairePage() {
         body: JSON.stringify({ answers }),
       }),
     onSuccess: () => {
-      alert('Questionnaire submitted successfully!');
+      alert(t('Questionnaire submitted successfully!'));
     },
   });
 
   if (!user) {
     return (
       <div className="rounded-xl bg-yellow-50 p-4 text-yellow-700">
-        Please sign in to access the questionnaire.
+        {t('Please sign in to access the questionnaire.')}
       </div>
     );
   }
@@ -78,7 +81,7 @@ export function QuestionnairePage() {
   if (events.length === 0) {
     return (
       <div className="rounded-xl bg-yellow-50 p-4 text-yellow-700">
-        No events available. Please register for an event first.
+        {t('No events available. Please register for an event first.')}
       </div>
     );
   }
@@ -124,8 +127,8 @@ export function QuestionnairePage() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Questionnaire</h1>
-        <p className="mt-2 text-gray-600">Help us find your perfect match</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t('Questionnaire')}</h1>
+        <p className="mt-2 text-gray-600">{t('Help us find your perfect match')}</p>
       </div>
 
       {/* Event Selector */}
@@ -153,7 +156,7 @@ export function QuestionnairePage() {
         </div>
       ) : questions.length === 0 ? (
         <div className="rounded-xl bg-yellow-50 p-4 text-yellow-700">
-          No questionnaire available for this event yet.
+          {t('No questionnaire available for this event yet.')}
         </div>
       ) : (
         <>
@@ -161,7 +164,7 @@ export function QuestionnairePage() {
           <div className="rounded-xl border border-rose-100 bg-white p-4">
             <div className="flex items-center justify-between text-sm text-gray-600">
               <span>
-                Question {currentQuestion + 1} of {questions.length}
+                {t('Question')} {currentQuestion + 1} {t('of')} {questions.length}
               </span>
               <span>{Math.round(progress)}%</span>
             </div>
@@ -175,7 +178,7 @@ export function QuestionnairePage() {
 
           {/* Question Card */}
           <div className="rounded-2xl border border-rose-100 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-semibold text-gray-900">{question.text}</h2>
+            <h2 className="text-xl font-semibold text-gray-900">{localizedQuestionText(question.text, question.textFr, language)}</h2>
             <div className="mt-6 space-y-3">
               {question.options.map((option) => (
                 <button
@@ -188,7 +191,7 @@ export function QuestionnairePage() {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span>{option.text}</span>
+                    <span>{localizedQuestionText(option.text, option.textFr, language)}</span>
                     {answers[question.questionId] === (option.value ?? option.id) && (
                       <Check className="h-5 w-5 text-rose-500" />
                     )}
@@ -206,20 +209,20 @@ export function QuestionnairePage() {
               className="flex items-center gap-2 rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50"
             >
               <ChevronLeft className="h-4 w-4" />
-              Previous
+              {t('Previous')}
             </button>
             <button
               onClick={handleSaveDraft}
               className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50"
             >
-              Save Draft
+              {t('Save Draft')}
             </button>
             {currentQuestion < questions.length - 1 ? (
               <button
                 onClick={handleNext}
                 className="flex items-center gap-2 rounded-lg bg-rose-500 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-600"
               >
-                Next
+                {t('Next')}
                 <ChevronRight className="h-4 w-4" />
               </button>
             ) : (
@@ -228,7 +231,7 @@ export function QuestionnairePage() {
                 className="flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2 text-sm font-semibold text-white hover:bg-green-600"
               >
                 <Check className="h-4 w-4" />
-                Submit
+                {t('Submit')}
               </button>
             )}
           </div>

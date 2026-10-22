@@ -2,10 +2,11 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import { Calendar, FileText, Heart, Bell, User, Clock, MapPin } from 'lucide-react';
+import { Calendar, FileText, Heart, User, Clock, MapPin, ClipboardCheck } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface Registration {
-  id: string;
+  _id: string;
   eventId: string;
   registrationStatus: string;
   questionnaireStatus: string;
@@ -22,11 +23,12 @@ interface Event {
 
 export function DashboardPage() {
   const { user, profile } = useAuth();
+  const { t, language } = useLanguage();
 
   const { data: registrationsData } = useQuery({
     queryKey: ['my-registrations'],
     queryFn: async () => {
-      const response = await api<{ data: { registrations: Registration[] } }>('/api/v1/events');
+      const response = await api<{ data: { registrations: Registration[] } }>('/api/v1/my-registrations');
       return response;
     },
     enabled: !!user,
@@ -59,11 +61,11 @@ export function DashboardPage() {
       {/* Welcome Section */}
       <div className="rounded-2xl bg-gradient-to-r from-rose-500 to-purple-600 p-8 text-white">
         <h1 className="text-3xl font-bold">
-          Welcome back, {profile?.displayName?.split(' ')[0] ?? 'there'}!
+          {t('Welcome back,')} {profile?.displayName?.split(' ')[0] ?? t('there')}!
         </h1>
         <p className="mt-2 text-rose-100">
           {user
-            ? "Here's what's happening with your SpeedDate journey."
+            ? t("Here's what's happening with your SpeedDate journey.")
             : 'Sign in to see your dashboard.'}
         </p>
       </div>
@@ -77,7 +79,7 @@ export function DashboardPage() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{events.length}</p>
-              <p className="text-sm text-gray-500">Upcoming Events</p>
+              <p className="text-sm text-gray-500">{t('Upcoming Events')}</p>
             </div>
           </div>
         </div>
@@ -92,7 +94,7 @@ export function DashboardPage() {
                   (r: Registration) => r.questionnaireStatus === 'submitted',
                 ).length ?? 0}
               </p>
-              <p className="text-sm text-gray-500">Questionnaires Done</p>
+              <p className="text-sm text-gray-500">{t('Questionnaires Done')}</p>
             </div>
           </div>
         </div>
@@ -102,19 +104,23 @@ export function DashboardPage() {
               <Heart className="h-5 w-5 text-pink-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">0</p>
-              <p className="text-sm text-gray-500">Matches</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {registrationsData?.data.registrations?.length ?? 0}
+              </p>
+              <p className="text-sm text-gray-500">{t('My Registrations')}</p>
             </div>
           </div>
         </div>
         <div className="rounded-xl border border-rose-100 bg-white p-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-              <Bell className="h-5 w-5 text-blue-600" />
+              <ClipboardCheck className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">0</p>
-              <p className="text-sm text-gray-500">Notifications</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {registrationsData?.data.registrations?.filter((registration) => ['approved', 'checked_in'].includes(registration.registrationStatus)).length ?? 0}
+              </p>
+              <p className="text-sm text-gray-500">{t('Approved Registrations')}</p>
             </div>
           </div>
         </div>
@@ -123,9 +129,9 @@ export function DashboardPage() {
       {/* Upcoming Events */}
       <section>
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900">Upcoming Events</h2>
+          <h2 className="text-xl font-bold text-gray-900">{t('Upcoming Events')}</h2>
           <Link to="/events" className="text-sm font-medium text-rose-600 hover:text-rose-700">
-            View all
+            {t('View all')}
           </Link>
         </div>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -141,7 +147,7 @@ export function DashboardPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Clock className="h-4 w-4 text-rose-400" />
-                      {new Date(event.startAt).toLocaleDateString('en-US', { dateStyle: 'long' })}
+                      {new Date(event.startAt).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { dateStyle: 'long' })}
                     </div>
                   </div>
                 </div>
@@ -155,7 +161,7 @@ export function DashboardPage() {
                 to={`/events/${event.id}`}
                 className="mt-4 block rounded-lg bg-rose-50 py-2 text-center text-sm font-medium text-rose-600 hover:bg-rose-100"
               >
-                View Details
+                {t('View Details')}
               </Link>
             </div>
           ))}
@@ -164,7 +170,7 @@ export function DashboardPage() {
 
       {/* Quick Actions */}
       <section>
-        <h2 className="text-xl font-bold text-gray-900">Quick Actions</h2>
+        <h2 className="text-xl font-bold text-gray-900">{t('Quick Actions')}</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Link
             to="/profile"
@@ -172,8 +178,8 @@ export function DashboardPage() {
           >
             <User className="h-8 w-8 text-rose-500" />
             <div>
-              <p className="font-medium text-gray-900">Edit Profile</p>
-              <p className="text-sm text-gray-500">Update your information</p>
+              <p className="font-medium text-gray-900">{t('Edit Profile')}</p>
+              <p className="text-sm text-gray-500">{t('Update your information')}</p>
             </div>
           </Link>
           <Link
@@ -182,8 +188,8 @@ export function DashboardPage() {
           >
             <FileText className="h-8 w-8 text-purple-500" />
             <div>
-              <p className="font-medium text-gray-900">Questionnaire</p>
-              <p className="text-sm text-gray-500">Complete your profile</p>
+              <p className="font-medium text-gray-900">{t('Questionnaire')}</p>
+              <p className="text-sm text-gray-500">{t('Complete your profile')}</p>
             </div>
           </Link>
           <Link
@@ -192,8 +198,8 @@ export function DashboardPage() {
           >
             <Heart className="h-8 w-8 text-pink-500" />
             <div>
-              <p className="font-medium text-gray-900">View Matches</p>
-              <p className="text-sm text-gray-500">See your compatibility</p>
+              <p className="font-medium text-gray-900">{t('View Matches')}</p>
+              <p className="text-sm text-gray-500">{t('See your compatibility')}</p>
             </div>
           </Link>
         </div>

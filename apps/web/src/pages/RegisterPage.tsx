@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Heart } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 export function RegisterPage() {
+  const { t } = useLanguage();
   const { register } = useAuth();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -32,7 +34,7 @@ export function RegisterPage() {
     setError('');
 
     if (!formData.agreedToRules || !formData.agreedToPrivacy || !formData.consentToMatching) {
-      setError('Please agree to all terms and conditions');
+      setError(t('Please agree to all terms and conditions'));
       return;
     }
 
@@ -62,9 +64,9 @@ export function RegisterPage() {
       <div className="rounded-2xl border border-rose-100 bg-white p-8 shadow-sm">
         <div className="mb-6 text-center">
           <Heart className="mx-auto h-10 w-10 text-rose-500" />
-          <h1 className="mt-4 text-2xl font-bold text-gray-900">Create your account</h1>
+          <h1 className="mt-4 text-2xl font-bold text-gray-900">{t('Create your account')}</h1>
           <p className="mt-2 text-sm text-gray-600">
-            Join SpeedDate and start meeting compatible people
+            {t('Join SpeedDate and start meeting compatible people')}
           </p>
         </div>
 
@@ -74,7 +76,7 @@ export function RegisterPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                First name
+                {t('First name')}
               </label>
               <input
                 id="firstName"
@@ -87,7 +89,7 @@ export function RegisterPage() {
             </div>
             <div>
               <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                Last name
+                {t('Last name')}
               </label>
               <input
                 id="lastName"
@@ -102,7 +104,7 @@ export function RegisterPage() {
 
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-              Email
+              {t('Email')}
             </label>
             <input
               id="email"
@@ -117,7 +119,7 @@ export function RegisterPage() {
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-              Password
+              {t('Password')}
             </label>
             <input
               id="password"
@@ -129,12 +131,12 @@ export function RegisterPage() {
               minLength={8}
               className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500"
             />
-            <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
+            <p className="mt-1 text-xs text-gray-500">{t('Must be at least 8 characters')}</p>
           </div>
 
           <div>
             <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700">
-              Date of birth
+              {t('Date of birth')}
             </label>
             <input
               id="dateOfBirth"
@@ -148,7 +150,7 @@ export function RegisterPage() {
               }
               className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-rose-500 focus:outline-none focus:ring-1 focus:ring-rose-500"
             />
-            <p className="mt-1 text-xs text-gray-500">You must be at least 18 years old</p>
+            <p className="mt-1 text-xs text-gray-500">{t('You must be at least 18 years old')}</p>
           </div>
 
           <div className="space-y-3 rounded-lg bg-gray-50 p-4">
@@ -161,9 +163,9 @@ export function RegisterPage() {
                 className="mt-1"
               />
               <span className="text-sm text-gray-600">
-                I agree to the{' '}
+                {t('I agree to the')}{' '}
                 <Link to="/rules" className="text-rose-600 hover:underline">
-                  event rules
+                  {t('event rules')}
                 </Link>
               </span>
             </label>
@@ -176,9 +178,9 @@ export function RegisterPage() {
                 className="mt-1"
               />
               <span className="text-sm text-gray-600">
-                I agree to the{' '}
+                {t('I agree to the')}{' '}
                 <Link to="/privacy" className="text-rose-600 hover:underline">
-                  privacy policy
+                  {t('privacy policy')}
                 </Link>
               </span>
             </label>
@@ -191,7 +193,7 @@ export function RegisterPage() {
                 className="mt-1"
               />
               <span className="text-sm text-gray-600">
-                I consent to participating in the matching process
+                {t('I consent to participating in the matching process')}
               </span>
             </label>
           </div>
@@ -201,14 +203,14 @@ export function RegisterPage() {
             disabled={loading}
             className="w-full rounded-lg bg-rose-500 py-3 font-semibold text-white hover:bg-rose-600 disabled:opacity-50"
           >
-            {loading ? 'Creating account...' : 'Create account'}
+            {loading ? t('Creating account...') : t('Create account')}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-gray-600">
-          Already have an account?{' '}
+          {t('Already have an account?')}{' '}
           <Link to="/login" className="font-medium text-rose-600 hover:text-rose-700">
-            Sign in
+            {t('Sign in')}
           </Link>
         </p>
       </div>

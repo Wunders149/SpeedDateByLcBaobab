@@ -3,6 +3,7 @@ import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Users, Calendar, FileText, Heart, Activity, ClipboardCheck, QrCode, ClipboardList, BarChart3, Timer, Bell, ArrowRight, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface DashboardData {
   overview: {
@@ -29,6 +30,7 @@ interface DashboardData {
 
 export function AdminPage() {
   const { user } = useAuth();
+  const { t } = useLanguage();
 
   const { data, isLoading } = useQuery({
     queryKey: ['admin-dashboard'],
@@ -51,11 +53,11 @@ export function AdminPage() {
       <div className="flex flex-col gap-5 rounded-3xl bg-gradient-to-br from-rose-600 via-rose-600 to-fuchsia-700 p-6 text-white shadow-lg shadow-rose-200 sm:flex-row sm:items-center sm:justify-between sm:p-8">
         <div>
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-rose-100">Host workspace</p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Host dashboard</h1>
-          <p className="mt-2 max-w-xl text-sm text-rose-50 sm:text-base">Keep your event moving: review sign-ups, prepare rotations, and welcome guests.</p>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">{t('Host dashboard')}</h1>
+          <p className="mt-2 max-w-xl text-sm text-rose-50 sm:text-base">{t('Keep your event moving: review sign-ups, prepare rotations, and welcome guests.')}</p>
         </div>
         <Link to="/admin/events/new" className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-rose-700 shadow-sm transition hover:bg-rose-50">
-          <Plus className="h-4 w-4" /> Create event
+          <Plus className="h-4 w-4" /> {t('Create event')}
         </Link>
       </div>
 
@@ -70,7 +72,7 @@ export function AdminPage() {
               <p className="text-2xl font-bold text-gray-900">
                 {dashboard?.overview.totalParticipants ?? 0}
               </p>
-              <p className="text-sm text-gray-500">Participants</p>
+              <p className="text-sm text-gray-500">{t('Participants')}</p>
             </div>
           </div>
         </div>
@@ -83,7 +85,7 @@ export function AdminPage() {
               <p className="text-2xl font-bold text-gray-900">
                 {dashboard?.overview.totalEvents ?? 0}
               </p>
-              <p className="text-sm text-gray-500">Events</p>
+              <p className="text-sm text-gray-500">{t('Events')}</p>
             </div>
           </div>
         </div>
@@ -96,7 +98,7 @@ export function AdminPage() {
               <p className="text-2xl font-bold text-gray-900">
                 {dashboard?.overview.pendingRegistrations ?? 0}
               </p>
-              <p className="text-sm text-gray-500">Pending</p>
+              <p className="text-sm text-gray-500">{t('Pending')}</p>
             </div>
           </div>
         </div>
@@ -109,7 +111,7 @@ export function AdminPage() {
               <p className="text-2xl font-bold text-gray-900">
                 {dashboard?.overview.approvedRegistrations ?? 0}
               </p>
-              <p className="text-sm text-gray-500">Approved</p>
+              <p className="text-sm text-gray-500">{t('Approved')}</p>
             </div>
           </div>
         </div>
@@ -123,8 +125,8 @@ export function AdminPage() {
         >
           <Calendar className="h-8 w-8 text-rose-500" />
           <div>
-            <p className="font-medium text-gray-900">Manage Events</p>
-            <p className="text-sm text-gray-500">Create and edit events</p>
+            <p className="font-medium text-gray-900">{t('Manage Events')}</p>
+            <p className="text-sm text-gray-500">{t('Create and edit events')}</p>
           </div>
           <ArrowRight className="ml-auto h-4 w-4 text-slate-300 transition group-hover:translate-x-1 group-hover:text-rose-500" />
         </Link>
@@ -134,8 +136,8 @@ export function AdminPage() {
         >
           <Users className="h-8 w-8 text-purple-500" />
           <div>
-            <p className="font-medium text-gray-900">Registration Review</p>
-            <p className="text-sm text-gray-500">Approve, reject, and waitlist applicants</p>
+            <p className="font-medium text-gray-900">{t('Registration Review')}</p>
+            <p className="text-sm text-gray-500">{t('Approve, reject, and waitlist applicants')}</p>
           </div>
           <ArrowRight className="ml-auto h-4 w-4 text-slate-300 transition group-hover:translate-x-1 group-hover:text-rose-500" />
         </Link>
@@ -145,15 +147,15 @@ export function AdminPage() {
         >
           <Heart className="h-8 w-8 text-pink-500" />
           <div>
-            <p className="font-medium text-gray-900">Matching</p>
-            <p className="text-sm text-gray-500">Generate and publish matches</p>
+            <p className="font-medium text-gray-900">{t('Matching')}</p>
+            <p className="text-sm text-gray-500">{t('Generate and publish matches')}</p>
           </div>
           <ArrowRight className="ml-auto h-4 w-4 text-slate-300 transition group-hover:translate-x-1 group-hover:text-rose-500" />
         </Link>
       </div>
 
       <section>
-        <h2 className="mb-3 text-lg font-semibold text-gray-900">Event operations</h2>
+        <h2 className="mb-3 text-lg font-semibold text-gray-900">{t('Event operations')}</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
             { to: '/admin/check-in', title: 'Check-In', detail: 'Manage event attendance', icon: QrCode },
@@ -164,13 +166,13 @@ export function AdminPage() {
             { to: '/admin/reports', title: 'Reports', detail: 'Review attendance and match data', icon: BarChart3 },
             { to: '/admin/participants', title: 'Participants', detail: 'Search participant accounts', icon: Users },
             { to: '/admin/notifications', title: 'Announcements', detail: 'Message registered participants', icon: Bell },
-          ].map(({ to, title, detail, icon: Icon }) => <Link key={to} to={to} className="group flex min-h-20 items-center gap-3 rounded-2xl border border-rose-100 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md"><Icon className="h-6 w-6 shrink-0 text-rose-500" /><span><span className="block font-medium text-gray-900">{title}</span><span className="text-sm text-gray-500">{detail}</span></span><ArrowRight className="ml-auto h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-1 group-hover:text-rose-500" /></Link>)}
+          ].map(({ to, title, detail, icon: Icon }) => <Link key={to} to={to} className="group flex min-h-20 items-center gap-3 rounded-2xl border border-rose-100 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-md"><Icon className="h-6 w-6 shrink-0 text-rose-500" /><span><span className="block font-medium text-gray-900">{t(title)}</span><span className="text-sm text-gray-500">{t(detail)}</span></span><ArrowRight className="ml-auto h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-1 group-hover:text-rose-500" /></Link>)}
         </div>
       </section>
 
       {/* Recent Activity */}
       <div className="rounded-2xl border border-rose-100 bg-white p-5 shadow-sm sm:p-6">
-        <div className="flex items-center justify-between gap-4"><div><h2 className="text-lg font-semibold text-gray-900">Recent activity</h2><p className="mt-1 text-sm text-gray-500">The latest changes across your events.</p></div><Activity className="h-5 w-5 text-rose-400" /></div>
+        <div className="flex items-center justify-between gap-4"><div><h2 className="text-lg font-semibold text-gray-900">{t('Recent activity')}</h2><p className="mt-1 text-sm text-gray-500">{t('The latest changes across your events.')}</p></div><Activity className="h-5 w-5 text-rose-400" /></div>
         <div className="mt-4 space-y-3">
           {dashboard?.recentActivity?.length ? dashboard.recentActivity.slice(0, 5).map((activity) => (
             <div
@@ -185,7 +187,7 @@ export function AdminPage() {
                 {new Date(activity.timestamp).toLocaleString()}
               </span>
             </div>
-          )) : <div className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center"><p className="text-sm font-medium text-slate-700">No activity yet</p><p className="mt-1 text-sm text-slate-500">Updates from event setup and registrations will appear here.</p></div>}
+          )) : <div className="rounded-xl border border-dashed border-slate-200 px-4 py-8 text-center"><p className="text-sm font-medium text-slate-700">{t('No activity yet')}</p><p className="mt-1 text-sm text-slate-500">{t('Updates from event setup and registrations will appear here.')}</p></div>}
         </div>
       </div>
     </div>

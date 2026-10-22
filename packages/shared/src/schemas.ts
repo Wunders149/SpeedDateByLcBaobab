@@ -81,6 +81,7 @@ export const updateEventSchema = createEventSchema.partial();
 export const answerOptionSchema = z.object({
   id: z.string().min(1).max(50),
   text: z.string().min(1).max(500),
+  textFr: z.string().max(500).optional(),
   value: z.number().min(-10).max(10).optional(),
   weight: z.number().min(0).max(10).optional(),
 });
@@ -93,6 +94,7 @@ export const dealBreakerConfigSchema = z.object({
 
 export const createQuestionSchema = z.object({
   text: z.string().min(5).max(500),
+  textFr: z.string().max(500).optional(),
   type: z.nativeEnum(QuestionType),
   category: z.nativeEnum(QuestionCategory),
   options: z.array(answerOptionSchema).min(2),

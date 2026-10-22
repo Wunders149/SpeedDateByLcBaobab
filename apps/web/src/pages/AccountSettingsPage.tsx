@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Shield, Bell, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Shield, Trash2, Eye, EyeOff } from 'lucide-react';
 
 export function AccountSettingsPage() {
-  const { user, logout } = useAuth();
+  const { user, profile, logout } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState(user?.email ?? '');
   const [currentPassword, setCurrentPassword] = useState('');
@@ -23,7 +23,7 @@ export function AccountSettingsPage() {
         <div className="mt-4 space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700">Display Name</label>
-            <input type="text" defaultValue="Your Name" className="mt-1 block w-full rounded-lg border border-gray-300 px-4 py-2" />
+            <input type="text" value={profile?.displayName ?? ''} readOnly className="mt-1 block w-full rounded-lg border border-gray-300 bg-gray-50 px-4 py-2" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700">Email</label>
@@ -77,27 +77,6 @@ export function AccountSettingsPage() {
           <button className="rounded-lg bg-gray-800 px-6 py-2 font-semibold text-white hover:bg-gray-700">
             Change Password
           </button>
-        </div>
-      </div>
-
-      {/* Notifications */}
-      <div className="rounded-2xl border border-rose-100 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <Bell className="h-5 w-5 text-rose-500" />
-          Notification Preferences
-        </h2>
-        <div className="mt-4 space-y-3">
-          {[
-            { label: 'Match results', description: 'Notify me when match results are published' },
-            { label: 'New matches', description: 'Notify me about mutual matches' },
-            { label: 'Event reminders', description: 'Reminder before events I am registered for' },
-            { label: 'Questionnaire deadlines', description: 'Remind me about upcoming questionnaire deadlines' },
-          ].map(({ label }) => (
-            <label key={label} className="flex items-center justify-between rounded-lg border p-3">
-              <span className="text-sm font-medium text-gray-900">{label}</span>
-              <input type="checkbox" defaultChecked className="h-4 w-4 rounded text-rose-500" />
-            </label>
-          ))}
         </div>
       </div>
 

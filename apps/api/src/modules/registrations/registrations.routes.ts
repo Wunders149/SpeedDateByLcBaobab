@@ -10,6 +10,14 @@ import { Notification } from '../../models/Notification.js';
 
 const router = Router();
 
+// Participant: List the signed-in user's registrations
+router.get('/my-registrations', authenticate, async (req: Request, res: Response) => {
+  const registrations = await Registration.find({ participantId: req.user!.userId })
+    .sort({ registeredAt: -1 })
+    .lean();
+  res.json({ success: true, data: { registrations } });
+});
+
 // Participant: Register for event
 router.post(
   '/events/:eventId/registrations',
