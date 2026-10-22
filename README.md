@@ -1,206 +1,163 @@
 # SpeedDate
 
-A full-stack speed dating web application built with TypeScript, React, Express, and MongoDB.
+SpeedDate is a bilingual (English/French) speed-dating platform. Participants create profiles, browse published events, register, complete an event questionnaire, and receive matching results. Event administrators create events, manage registrations, build questionnaires, run matching, and manage event sessions.
 
-## Features
+## Current workflow
 
-- **Participant Registration & Profiles** — Secure registration with age verification, profile management, and privacy controls
-- **Intelligent Questionnaire** — 60-question bank across 7 categories with configurable weights and scoring models
-- **Matching Engine** — Category-weighted compatibility scoring with similarity/complementarity models, deal-breaker evaluation, and global optimal matching
-- **Event Management** — Create, publish, and manage speed dating events with capacity limits and waitlists
-- **Admin Dashboard** — Manage events, participants, questionnaires, matches, and view analytics
-- **Real-time Updates** — Socket.IO for live event updates
-- **Consent-Based Matching** — Mutual interest confirmation before revealing matches
-- **Audit Logging** — All administrative actions are recorded
+### Participant
 
-## Tech Stack
+1. Register or sign in.
+2. Browse published events at `/events`.
+3. Open an event and register while registration is open.
+4. Open the questionnaire. Only events with an active registration are available.
+5. Save questionnaire progress and submit at least the configured completion threshold (80% by default).
+6. View sessions, notifications, matches, and published results when the organizer makes them available.
 
-- **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, TanStack Query, React Router
-- **Backend:** Node.js, Express, TypeScript, MongoDB, Mongoose, Socket.IO
-- **Shared:** TypeScript types, Zod schemas, matching algorithm
-- **Testing:** Vitest, Supertest
+### Event administrator
 
-## Project Structure
+1. Sign in through the host workspace.
+2. Create an event as a draft.
+3. Publish the event and open registration.
+4. Create or manage questions in **Question bank**.
+5. Select questions and category weights in **Questionnaire builder**, then publish a questionnaire version for the event.
+6. Review registrations, check participants in, generate and review matches, publish results, and generate session rotations.
 
-```
-speed-dating-app/
-├── apps/
-│   ├── web/                 # React frontend
-│   │   ├── src/
-│   │   │   ├── components/  # Reusable UI components
-│   │   │   ├── contexts/    # React contexts (Auth)
-│   │   │   ├── lib/         # API client, utilities
-│   │   │   ├── pages/       # Page components
-│   │   │   └── App.tsx      # Main app with routing
-│   └── api/                 # Express backend
-│       └── src/
-│           ├── config/      # Database configuration
-│           ├── middleware/  # Auth, validation, error handling
-│           ├── models/      # Mongoose models
-│           ├── modules/     # Route modules
-│           │   ├── auth/
-│           │   ├── events/
-│           │   ├── registrations/
-│           │   ├── questionnaires/
-│           │   ├── matching/
-│           │   └── admin/
-│           ├── utils/       # Utilities (auth, audit)
-│           ├── app.ts       # Express app setup
-│           ├── server.ts    # Server entry point
-│           └── seed.ts      # Database seed script
-├── packages/
-│   └── shared/              # Shared types, schemas, matching algorithm
-│       └── src/
-│           ├── types.ts
-│           ├── schemas.ts
-│           ├── matching.ts
-│           └── constants.ts
-├── .env.example
-├── package.json
-├── tsconfig.base.json
-└── README.md
+The database no longer contains demo accounts or demo events. A new database must be initialized with a real administrator and any desired question bank content.
+
+## Technology
+
+- Frontend: React 18, TypeScript, Vite, Tailwind CSS, TanStack Query, React Router
+- API: Node.js, Express, TypeScript, MongoDB, Mongoose, Socket.IO
+- Shared package: TypeScript types, Zod schemas, and matching algorithm
+- Tests: Vitest, Supertest, and Playwright E2E specifications
+
+## Requirements
+
+- Node.js 18 or newer
+- npm 9 or newer
+- MongoDB 6 or newer, local or MongoDB Atlas
+
+## Setup
+
+```bash
+npm install
+cp .env.example .env
 ```
 
-## Getting Started
+Configure `.env` with a real database URI and a strong JWT secret:
 
-### Prerequisites
+```env
+PORT=4000
+NODE_ENV=development
+CLIENT_URL=http://localhost:5173
+MONGODB_URI=mongodb://localhost:27017/speeddate
+JWT_SECRET=replace-with-a-long-random-secret
+JWT_EXPIRES_IN=7d
+BCRYPT_ROUNDS=12
+```
 
-- Node.js 18+
-- MongoDB 6+ (local or Atlas)
-- npm 9+
+Initialize the default question bank. This command is safe to run repeatedly and does not create users or events:
 
-### Installation
+```bash
+npm run seed
+```
 
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd speed-dating-app
-   ```
+For a new database, create the first administrator with temporary environment variables. The command refuses to run if an administrator already exists:
 
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
+```powershell
+$env:BOOTSTRAP_ADMIN_EMAIL = "admin@example.com"
+$env:BOOTSTRAP_ADMIN_PASSWORD = "use-a-private-password-at-least-12-characters"
+npm run bootstrap-admin
+Remove-Item Env:BOOTSTRAP_ADMIN_EMAIL
+Remove-Item Env:BOOTSTRAP_ADMIN_PASSWORD
+```
 
-3. Create environment file:
-   ```bash
-   cp .env.example .env
-   ```
+Do not commit `.env` or share database credentials. The API redacts the database password in its connection log.
 
-4. Update `.env` with your configuration:
-   ```env
-   PORT=4000
-   NODE_ENV=development
-   CLIENT_URL=http://localhost:5173
-   MONGODB_URI=mongodb://localhost:27017/speeddate
-   JWT_SECRET=your-secret-key-here
-   JWT_EXPIRES_IN=7d
-   BCRYPT_ROUNDS=12
-   ```
+Start the development servers:
 
-5. Initialize the default questionnaire question bank (optional; safe to run more than once):
-   ```bash
-   npm run seed
-   ```
+```bash
+npm run dev
+```
 
-   To create the first administrator for a new database, set `BOOTSTRAP_ADMIN_EMAIL` and
-   `BOOTSTRAP_ADMIN_PASSWORD` in `.env` and run `npm run bootstrap-admin`. The command refuses
-   to run when an administrator already exists.
+- Web: http://localhost:5173
+- API health: http://localhost:4000/api/health
 
-6. Start development servers:
-   ```bash
-   npm run dev
-   ```
+## Scripts
 
-7. Open the frontend at http://localhost:5173
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the API and web development servers |
+| `npm run build` | Build shared code, API, and web assets |
+| `npm run seed` | Add the default question bank only when the bank is empty |
+| `npm run bootstrap-admin` | Create the first super administrator |
+| `npm test` | Run shared and API tests; requires the configured test MongoDB instance |
+| `npm run test:e2e` | Run Playwright browser tests after installing Playwright and its browsers |
+| `npm run lint` | Run ESLint |
 
-## Available Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start both API and web dev servers |
-| `npm run build` | Build all packages |
-| `npm test` | Run all tests |
-| `npm run seed` | Add default questionnaire questions if the question bank is empty; does not create demo users or events |
-
-## API Endpoints
+## Important API routes
 
 ### Authentication
-- `POST /api/v1/auth/register` — Register new participant
-- `POST /api/v1/auth/login` — Login
-- `POST /api/v1/auth/logout` — Logout
-- `GET /api/v1/auth/me` — Get current user
 
-### Events
-- `GET /api/v1/events` — List public events
-- `GET /api/v1/events/:eventId` — Get event details
-- `POST /api/v1/admin/events` — Create event (admin)
-- `PATCH /api/v1/admin/events/:eventId` — Update event (admin)
+- `POST /api/v1/auth/register`
+- `POST /api/v1/auth/login`
+- `POST /api/v1/auth/logout`
+- `GET /api/v1/auth/me`
 
-### Registrations
-- `POST /api/v1/events/:eventId/registrations` — Register for event
-- `GET /api/v1/events/:eventId/my-registration` — Get my registration
-- `POST /api/v1/events/:eventId/withdraw` — Withdraw registration
+### Events and registrations
+
+- `GET /api/v1/events` - public published events
+- `GET /api/v1/events/:eventId` - public event details
+- `POST /api/v1/events/:eventId/registrations` - participant registration
+- `GET /api/v1/my-registrations` - signed-in participant registrations
+- `GET /api/v1/events/:eventId/my-registration`
+- `POST /api/v1/events/:eventId/withdraw`
 
 ### Questionnaires
-- `GET /api/v1/events/:eventId/questionnaire` — Get questionnaire
-- `PUT /api/v1/events/:eventId/questionnaire/draft` — Save draft
-- `POST /api/v1/events/:eventId/questionnaire/submit` — Submit questionnaire
 
-### Matching
-- `GET /api/v1/events/:eventId/my-matches` — Get my matches
-- `POST /api/v1/events/:eventId/interests` — Express interest
-- `GET /api/v1/events/:eventId/my-results` — Get my results
+- `GET /api/v1/events/:eventId/questionnaire`
+- `PUT /api/v1/events/:eventId/questionnaire/draft`
+- `POST /api/v1/events/:eventId/questionnaire/submit`
+- `GET /api/v1/admin/questions`
+- `POST /api/v1/admin/questions`
+- `PATCH /api/v1/admin/questions/:questionId`
+- `POST /api/v1/admin/events/:eventId/questionnaires`
+- `POST /api/v1/admin/events/:eventId/questionnaires/:versionId/publish`
 
-### Admin
-- `GET /api/v1/admin/dashboard` — Dashboard overview
-- `GET /api/v1/admin/participants` — List participants
-- `GET /api/v1/admin/audit-logs` — View audit logs
-- `POST /api/v1/admin/events/:eventId/matches/generate` — Generate matches
-- `POST /api/v1/admin/events/:eventId/matches/publish` — Publish matches
+Questionnaire routes require authentication, and participant questionnaire routes also require an active registration for that event.
 
-## Matching Algorithm
+### Matching and administration
 
-The compatibility score is calculated using a category-weighted approach:
+- `GET /api/v1/events/:eventId/my-matches`
+- `POST /api/v1/events/:eventId/interests`
+- `GET /api/v1/events/:eventId/my-results`
+- `GET /api/v1/admin/dashboard`
+- `GET /api/v1/admin/events`
+- `GET /api/v1/admin/participants`
+- `GET /api/v1/admin/audit-logs`
+- `POST /api/v1/admin/events/:eventId/matches/generate`
+- `POST /api/v1/admin/events/:eventId/matches/publish`
 
-1. **Category Scores** — Each category (Values, Communication, Personality, etc.) has a weight
-2. **Question Scoring** — Questions are scored based on similarity or complementarity
-3. **Mutual Score** — Geometric mean of directional scores: `100 × sqrt(Score(A→B) × Score(B→A))`
+## Security and operational notes
 
-The algorithm supports:
-- Similarity scoring (higher score for similar answers)
-- Complementarity scoring (higher score for compatible differences)
-- Deal-breaker evaluation
-- Global optimal matching
-- Configurable minimum thresholds
+- Passwords are hashed with bcrypt.
+- Authentication uses JWTs in HTTP-only cookies.
+- Admin routes use role-based access control.
+- API input is validated with Zod and protected by rate limiting, CORS, Helmet, and CSRF checks.
+- Administrative actions are recorded in audit logs.
+- Email and SMS delivery use console logging until SMTP and an SMS provider are configured.
+- Password reset endpoints currently return placeholder responses and are not suitable for production account recovery yet.
+- Socket.IO clients authenticate, but event-room membership authorization still needs to be enforced before relying on private realtime event data.
 
-## Security
+## Project layout
 
-- Password hashing with bcrypt
-- JWT authentication with HTTP-only cookies
-- Role-based access control (RBAC)
-- Rate limiting on auth endpoints
-- Input validation with Zod
-- NoSQL injection prevention
-- Security headers with Helmet
-- CORS protection
-- Audit logging
+```text
+apps/api/       Express API, models, routes, matching, and database configuration
+apps/web/       React application and page components
+packages/shared Shared types, schemas, constants, and matching algorithm
+tests/e2e/      Playwright browser specifications
+```
 
 ## License
 
 MIT
-
-## Notification Delivery Adapter
-
-The backend includes a dependency-free notification adapter (\pps/api/src/services/notifications.service.ts\) with pluggable e-mail (console/SMTP) and SMS (console/HTTP) transports. Configure via \SMTP_HOST\, \SMTP_PORT\, \SMTP_USER\, \SMTP_PASS\, \SMTP_FROM\, \SMS_PROVIDER_URL\, \SMS_API_KEY\ env vars. With no provider configured, messages are logged to the console (development mode).
-
-## E2E Testing
-
-Playwright specs live in \	ests/e2e/\. Install browsers once, then run:
-
-\\\ash
-npm install --save-dev @playwright/test
-npx playwright install
-npm run test:e2e
-\\\
-
