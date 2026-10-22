@@ -175,7 +175,10 @@ interface LanguageContextValue { language: Language; setLanguage: (language: Lan
 const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguageState] = useState<Language>(() => localStorage.getItem('speeddate-language') === 'fr' ? 'fr' : 'en');
+  const [language, setLanguageState] = useState<Language>(() => {
+    const stored = localStorage.getItem('speeddate-language');
+    return stored === 'en' ? 'en' : 'fr';
+  });
   const setLanguage = (next: Language) => setLanguageState(next);
   useEffect(() => {
     localStorage.setItem('speeddate-language', language);
